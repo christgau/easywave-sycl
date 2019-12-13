@@ -197,7 +197,6 @@ int ewStep( void )
     if( enlarge ) { Jmax++; if( Jmax > (NLat-1) ) Jmax = NLat-1; }
   }
 
-  std::cout << Imin << " " << Imax << " " << Jmin << " " << Jmax << std::endl;
 
 return 0;
 }
