@@ -1,5 +1,5 @@
 CXX=dpcpp
-CXXFLAGS=-O0 -g
+CXXFLAGS=-O3 -g -march=native -mtune=native -Rpass=loop-vectorize
 LDLIBS=-lm
 
 SOURCES=\
@@ -23,7 +23,7 @@ SOURCES=\
 OBJECTS=$(patsubst %.cpp,%.o,$(SOURCES))
 
 easywave: $(OBJECTS)
-	$(CXX) $^ $(LDLIBS) -o $@
+	$(CXX) $(CXXFLAGS) $^ $(LDLIBS) -o $@
 
 .PHONY: clean
 
