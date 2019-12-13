@@ -88,7 +88,12 @@ int main( int argc, char **argv )
 
   if( Par.gpu ) {
 #ifdef CL_SYCL_LANGUAGE_VERSION
-	  gNode = new CGpuNode();
+      try {
+	    gNode = new CGpuNode();
+      } catch (const std::string e) {
+          std::cerr << "unable to use accelerated compute device: " << e << std::endl;
+          return EXIT_FAILURE;
+      }
 #endif
   } else {
 	  gNode = new CStructNode();

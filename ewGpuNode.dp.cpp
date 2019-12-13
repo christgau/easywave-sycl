@@ -30,6 +30,8 @@
  * limitations under the Licence.
  */
 
+#include <unistd.h>
+
 #include <CL/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "ewGpuNode.dp.hpp"
@@ -41,6 +43,12 @@
 #include "ewCudaKernels.dp.cpp"
 
 CGpuNode::CGpuNode() {
+
+    char* dev_spec = getenv("EW_CL_DEVICE");
+    if (dev_spec) {
+        unsigned int dev_id = atoi(dev_spec);
+        dpct::get_device_manager().select_device(dev_id);
+    }
 
     dpct::dpct_device_info di;
     dpct::get_device_manager().current_device().get_device_info(di);
