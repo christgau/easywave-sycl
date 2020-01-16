@@ -424,7 +424,7 @@ int CGpuNode::run() try {
 
     //std::cout << Imin << " " << Imax << " " << Jmin << " " << Jmax << std::endl;
 	for( int j = 0; j < 5; j++ ) {
-		dur[j] = std::chrono::duration<float, std::milli>(evtEnd[j] - evtStart[j]).count();
+		dur[j] += std::chrono::duration<float, std::milli>(evtEnd[j] - evtStart[j]).count();
 	}
 
 	/* data has changed now -> copy becomes necessary */
