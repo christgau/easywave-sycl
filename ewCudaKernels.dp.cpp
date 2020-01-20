@@ -91,6 +91,7 @@ void runFluxUpdateKernel( KernelData data, float *h, float *d, float *fM, float 
 }
 
 
+#define SQR(x, y)  ((x) * (x))
 void runWaveBoundaryKernel( KernelData data, float *h, float *fM, float *fN, float *cB1, float *cB2, float *cB3, float *cB4, cl::sycl::nd_item<3> item_ct1) {
 
 	KernelData& dt = data;
@@ -101,43 +102,43 @@ void runWaveBoundaryKernel( KernelData data, float *h, float *fM, float *fN, flo
 
 	if( id <= dp.nI-1 ) {
 	  ij = dt.idx(id,1);
-	  h[ij] = cl::sycl::sqrt(cl::sycl::pow(fN[ij], 2.0f) + 0.25f*cl::sycl::pow((fM[ij] + fM[dt.le(ij)]), 2.0f))*cB1[id-1];
+	  h[ij] = cl::sycl::sqrt(SQR(fN[ij], 2.0f) + 0.25f*SQR((fM[ij] + fM[dt.le(ij)]), 2.0f))*cB1[id-1];
 	  if( fN[ij] > 0 ) h[ij] = -h[ij];
 	}
 
 	if( id <= dp.nI-1 ) {
 	  ij = dt.idx(id,dp.nJ);
-	  h[ij] = cl::sycl::sqrt(cl::sycl::pow(fN[dt.dn(ij)], 2.0f) + 0.25f*cl::sycl::pow((fM[ij] + fM[dt.dn(ij)]), 2.0f))*cB3[id-1];
+	  h[ij] = cl::sycl::sqrt(SQR(fN[dt.dn(ij)], 2.0f) + 0.25f*SQR((fM[ij] + fM[dt.dn(ij)]), 2.0f))*cB3[id-1];
 	  if( fN[dt.dn(ij)] < 0 ) h[ij] = -h[ij];
 	}
 
 	if( id <= dp.nJ-1 ) {
 	  ij = dt.idx(1,id);
-	  h[ij] = cl::sycl::sqrt(cl::sycl::pow(fM[ij], 2.0f) + 0.25f*cl::sycl::pow((fN[ij] + fN[dt.dn(ij)]), 2.0f))*cB2[id-1];
+	  h[ij] = cl::sycl::sqrt(SQR(fM[ij], 2.0f) + 0.25f*SQR((fN[ij] + fN[dt.dn(ij)]), 2.0f))*cB2[id-1];
 	  if( fM[ij] > 0 ) h[ij] = -h[ij];
 	}
 
 	if( id <= dp.nJ-1 ) {
 	  ij = dt.idx(dp.nI,id);
-	  h[ij] = cl::sycl::sqrt(cl::sycl::pow(fM[dt.le(ij)], 2.0f) + 0.25f*cl::sycl::pow((fN[ij] + fN[dt.dn(ij)]), 2.0f))*cB4[id-1];
+	  h[ij] = cl::sycl::sqrt(SQR(fM[dt.le(ij)], 2.0f) + 0.25f*SQR((fN[ij] + fN[dt.dn(ij)]), 2.0f))*cB4[id-1];
 	  if( fM[dt.le(ij)] < 0 ) h[ij] = -h[ij];
 	}
 
 	if( id == 2 ) {
 	  ij = dt.idx(1,1);
-	  h[ij] = cl::sycl::sqrt(cl::sycl::pow(fM[ij], 2.0f) + cl::sycl::pow(fN[ij], 2.0f))*cB1[0];
+	  h[ij] = cl::sycl::sqrt(SQR(fM[ij], 2.0f) + SQR(fN[ij], 2.0f))*cB1[0];
 	  if( fN[ij] > 0 ) h[ij] = -h[ij];
 
 	  ij = dt.idx(dp.nI,1);
-	  h[ij] = cl::sycl::sqrt(cl::sycl::pow(fM[dt.le(ij)], 2.0f) + cl::sycl::pow(fN[ij], 2.0f))*cB1[dp.nI-1];
+	  h[ij] = cl::sycl::sqrt(SQR(fM[dt.le(ij)], 2.0f) + SQR(fN[ij], 2.0f))*cB1[dp.nI-1];
 	  if( fN[ij] > 0 ) h[ij] = -h[ij];
 
 	  ij = dt.idx(1,dp.nJ);
-	  h[ij] = cl::sycl::sqrt(cl::sycl::pow(fM[ij], 2.0f) + cl::sycl::pow(fN[dt.dn(ij)], 2.0f))*cB3[0];
+	  h[ij] = cl::sycl::sqrt(SQR(fM[ij], 2.0f) + SQR(fN[dt.dn(ij)], 2.0f))*cB3[0];
 	  if( fN[dt.dn(ij)] < 0 ) h[ij] = -h[ij];
 
 	  ij = dt.idx(dp.nI,dp.nJ);
-	  h[ij] = cl::sycl::sqrt(cl::sycl::pow(fM[dt.le(ij)], 2.0f) + cl::sycl::pow(fN[dt.dn(ij)], 2.0f))*cB3[dp.nI-1];
+	  h[ij] = cl::sycl::sqrt(SQR(fM[dt.le(ij)], 2.0f) + SQR(fN[dt.dn(ij)], 2.0f))*cB3[dp.nI-1];
 	  if( fN[dt.dn(ij)] < 0 ) h[ij] = -h[ij];
 	}
 
