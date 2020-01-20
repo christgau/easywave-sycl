@@ -318,7 +318,7 @@ int CGpuNode::run() try {
 	        });
 	    });
 	}
-	dpct::get_device_manager().current_device().queues_wait_and_throw();
+//	dpct::get_device_manager().current_device().queues_wait_and_throw();
 	/*
 	DPCT1012:23: Detected kernel execution time measurement pattern and generated an initial code for time measurements in SYCL. You can change the way time is measured depending on your goals.
 	*/
@@ -338,6 +338,7 @@ int CGpuNode::run() try {
 	        });
 	    });
 	}
+//	dpct::get_device_manager().current_device().queues_wait_and_throw();
 
 	/*
 	DPCT1012:25: Detected kernel execution time measurement pattern and generated an initial code for time measurements in SYCL. You can change the way time is measured depending on your goals.
@@ -366,6 +367,7 @@ int CGpuNode::run() try {
 	/*
 	DPCT1012:27: Detected kernel execution time measurement pattern and generated an initial code for time measurements in SYCL. You can change the way time is measured depending on your goals.
 	*/
+//	dpct::get_device_manager().current_device().queues_wait_and_throw();
 	evtEnd[2] = std::chrono::high_resolution_clock::now();
 
 	/*
@@ -390,6 +392,7 @@ int CGpuNode::run() try {
 	/*
 	DPCT1012:29: Detected kernel execution time measurement pattern and generated an initial code for time measurements in SYCL. You can change the way time is measured depending on your goals.
 	*/
+//	dpct::get_device_manager().current_device().queues_wait_and_throw();
 	evtEnd[3] = std::chrono::high_resolution_clock::now();
 
 	/*
@@ -408,7 +411,7 @@ int CGpuNode::run() try {
 	    });
 	}
 
-	dpct::get_device_manager().current_device().queues_wait_and_throw();
+//	dpct::get_device_manager().current_device().queues_wait_and_throw();
 
 	/*
 	DPCT1012:31: Detected kernel execution time measurement pattern and generated an initial code for time measurements in SYCL. You can change the way time is measured depending on your goals.
