@@ -136,7 +136,7 @@ int main( int argc, char **argv )
 
     if( Par.outProgress ) {
       if( lastProgress >= Par.outProgress ) {
-        printf( "Model time = %s,   elapsed: %ld msec\n", utlTimeSplitString(Par.time), elapsed );
+        printf( "Model time = %s,   elapsed: %ld msec %d %d\n", utlTimeSplitString(Par.time), elapsed, Imax - Imin, Jmax - Jmin );
         Log.print( "Model time = %s,   elapsed: %ld msec", utlTimeSplitString(Par.time), elapsed );
         lastProgress = 0;
       }
