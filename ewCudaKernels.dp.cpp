@@ -181,55 +181,37 @@ void runWaveBoundaryKernel( KernelData data, float *h, float *fM, float *fN, flo
 	  ij = dt.idx(dp.nI,id);
 	  fN[ij] = fN[ij] - cR4[ij]*(h[dt.up(ij)] - h[ij]);
 	}
-
 }
 
-void runGridExtendKernel( KernelData data, float *h, cl::sycl::nd_item<3> item_ct1) {
+void runGridExtendKernel( KernelData data, float *h, cl::sycl::nd_item<1> item_ct1) {
 
 	Params& dp = data.params;
 
 	int id = item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + 1;
 
-#if 0
-    cl::sycl::atomic<int> m[4] = {
-        cl::sycl::atomic<int> { cl::sycl::global_ptr<int>{ &(data.g_MinMax[0]) } },
-        cl::sycl::atomic<int> { cl::sycl::global_ptr<int>{ &(data.g_MinMax[1]) } },
-        cl::sycl::atomic<int> { cl::sycl::global_ptr<int>{ &(data.g_MinMax[2]) } },
-        cl::sycl::atomic<int> { cl::sycl::global_ptr<int>{ &(data.g_MinMax[3]) } }
-    };
-
+#if 1
 //    (DPCPP_COMPATIBILITY_TEMP >= 130)
     /* for devices with support for atomics (was CUDA CC >= 2.0) */
 
 	if( id >= dp.jMin && id <= dp.jMax ) {
 
-	  if( fabsf(data.h[data.idx(dp.iMin+2,id)]) > dp.sshClipThreshold )
-          m[0].fetch_add(1);
-//          data.g_MinMax[0]++;
-//          data.g_MinMax[0].fetch_add(1);
-//		  atomicAdd( &(data.g_MinMax[0]), 1 );
+	  if( cl::sycl::fabs(h[data.idx(dp.iMin+2,id)]) > dp.sshClipThreshold )
+          dpct::atomic_fetch_add(data.g_MinMax, 1);
 
-	  if( fabsf(data.h[data.idx(dp.iMax-2,id)]) > dp.sshClipThreshold )
-          m[1].fetch_add(1);
-//          data.g_MinMax[1].fetch_add(1);
-//		  atomicAdd( &(data.g_MinMax[1]), 1 );
+	  if( cl::sycl::fabs(h[data.idx(dp.iMax-2,id)]) > dp.sshClipThreshold )
+          dpct::atomic_fetch_add(data.g_MinMax + 1, 1);
 	}
 
 	if( id >= dp.iMin && id <= dp.iMax ) {
 
-	  if( fabsf(data.h[data.idx(id,dp.jMin+2)]) > dp.sshClipThreshold )
-          m[2].fetch_add(1);
-//          data.g_MinMax[2].fetch_add(1);
-//		  atomicAdd( &(data.g_MinMax[2]), 1 );
+	  if( cl::sycl::fabs(h[data.idx(id,dp.jMin+2)]) > dp.sshClipThreshold )
+          dpct::atomic_fetch_add(data.g_MinMax + 2, 1);
 
-	  if( fabsf(data.h[data.idx(id,dp.jMax-2)]) > dp.sshClipThreshold )
-          m[3].fetch_add(1);
-//          data.g_MinMax[3].fetch_add(1);
-//		  atomicAdd( &(data.g_MinMax[3]), 1 );
+	  if( cl::sycl::fabs(h[data.idx(id,dp.jMax-2)]) > dp.sshClipThreshold )
+          dpct::atomic_fetch_add(data.g_MinMax + 3, 1);
 	}
 
 #else
-
         if( id == 1 ) {
 
           for( int j = dp.jMin; j <= dp.jMax; j++ ) {
