@@ -92,7 +92,8 @@ void runFluxUpdateKernel( KernelData data, float *h, float *d, float *fM, float 
 
 
 #define SQR(x, y)  ((x) * (x))
-void runWaveBoundaryKernel( KernelData data, float *h, float *fM, float *fN, float *cB1, float *cB2, float *cB3, float *cB4, cl::sycl::nd_item<3> item_ct1) {
+
+void runWaveBoundaryKernel( KernelData data, float *h, float *fM, float *fN, float *cB1, float *cB2, float *cB3, float *cB4, cl::sycl::nd_item<1> item_ct1) {
 
 	KernelData& dt = data;
 	Params& dp = data.params;
@@ -144,7 +145,7 @@ void runWaveBoundaryKernel( KernelData data, float *h, float *fM, float *fN, flo
 
 }
 
- void runFluxBoundaryKernel( KernelData data, float *h, float *fM, float *fN, float *cR2, float *cR4, cl::sycl::nd_item<3> item_ct1) {
+ void runFluxBoundaryKernel( KernelData data, float *h, float *fM, float *fN, float *cR2, float *cR4, cl::sycl::nd_item<1> item_ct1) {
 
 	KernelData& dt = data;
 	Params& dp = data.params;

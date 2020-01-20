@@ -332,8 +332,8 @@ int CGpuNode::run() try {
 	  dpct::get_default_queue_wait().submit(
 	    [&](cl::sycl::handler &cgh) {
 	      cgh.parallel_for<dpct_kernel_name<class runWaveBoundaryKernel_a2e825>>(
-	        cl::sycl::nd_range<3>((cl::sycl::range<3>(nBlocks, 1, 1) * cl::sycl::range<3>(nThreads, 1, 1)), cl::sycl::range<3>(nThreads, 1, 1)),
-	        [=](cl::sycl::nd_item<3> item_ct1) {
+	        cl::sycl::nd_range<1>((cl::sycl::range<1>(nBlocks) * cl::sycl::range<1>(nThreads)), cl::sycl::range<1>(nThreads)),
+	        [=](cl::sycl::nd_item<1> item_ct1) {
 	          runWaveBoundaryKernel(kd, dev_h, dev_fM, dev_fN, dev_cB1, dev_cB2, dev_cB3, dev_cB4, item_ct1);
 	        });
 	    });
@@ -375,9 +375,13 @@ int CGpuNode::run() try {
 	{
 	  dpct::get_default_queue_wait().submit(
 	    [&](cl::sycl::handler &cgh) {
-	      cgh.parallel_for<dpct_kernel_name<class runFluxBoundaryKernel_c663a8>>(
-	        cl::sycl::nd_range<3>((cl::sycl::range<3>(nBlocks, 1, 1) * cl::sycl::range<3>(nThreads, 1, 1)), cl::sycl::range<3>(nThreads, 1, 1)),
-	        [=](cl::sycl::nd_item<3> item_ct1) {
+	      cgh.parallel_for<dpct_kernel_name<class runFluxBoundaryKernel_c6xxx8>>(
+	        cl::sycl::nd_range<1>((cl::sycl::range<1>(nBlocks) * cl::sycl::range<1>(nThreads)), cl::sycl::range<1>(nThreads)),
+	        [=](cl::sycl::nd_item<1> item_ct1) {
+//	        cl::sycl::nd_range<1>((cl::sycl::range<1>(nBlocks) * cl::sycl::range<1>(nThreads)), cl::sycl::range<1>(nThreads)),
+//	        [=](cl::sycl::nd_item<1> item_ct1) {
+//              runFluxBoundaryKernel( kd, dev_h, dev_fM, dev_fN, dev_cR2, dev_cR4, item_ct1);
+//              runFluxBoundaryKernel( kd, dev_h, dev_fM, dev_fN, dev_cR2, dev_cR4, item_ct1);
               runFluxBoundaryKernel( kd, dev_h, dev_fM, dev_fN, dev_cR2, dev_cR4, item_ct1);
 	        });
 	    });
@@ -397,8 +401,8 @@ int CGpuNode::run() try {
 	  dpct::get_default_queue_wait().submit(
 	    [&](cl::sycl::handler &cgh) {
 	      cgh.parallel_for<dpct_kernel_name<class runGridExtendKernel_8a7d4e>>(
-	        cl::sycl::nd_range<3>((cl::sycl::range<3>(nBlocks, 1, 1) * cl::sycl::range<3>(nThreads, 1, 1)), cl::sycl::range<3>(nThreads, 1, 1)),
-	        [=](cl::sycl::nd_item<3> item_ct1) {
+	        cl::sycl::nd_range<1>((cl::sycl::range<1>(nBlocks) * cl::sycl::range<1>(nThreads)), cl::sycl::range<1>(nThreads)),
+	        [=](cl::sycl::nd_item<1> item_ct1) {
 	          runGridExtendKernel(kd, dev_h, item_ct1);
 	        });
 	    });
