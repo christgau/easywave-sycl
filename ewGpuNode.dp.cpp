@@ -35,7 +35,7 @@
 #include <CL/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "ewGpuNode.dp.hpp"
-#include "ewCudaKernels.dp.hpp"
+//#include "ewCudaKernels.dp.hpp"
 #include <cmath>
 #include "utilits.h"
 
@@ -259,15 +259,15 @@ int CGpuNode::run() try {
 
 	Params& dp = data.params;
 
-    /*
-	int nThreads = 256;
+	int nThreads = 128;
 	int xThreads = 32;
 	int yThreads = nThreads / xThreads;
-    */
 
-    int xThreads = 16;
-    int yThreads = 16;
+/*
+    int xThreads = 32;
+    int yThreads = 32;
     int nThreads = xThreads * yThreads;
+*/
 
 	int NJ = dp.jMax - dp.jMin + 1;
 	int NI = dp.iMax - dp.iMin + 1;
@@ -276,6 +276,9 @@ int CGpuNode::run() try {
 
 	cl::sycl::range<3> threads(xThreads, yThreads, 1);
 	cl::sycl::range<3> blocks(xBlocks, yBlocks, 1);
+
+	cl::sycl::range<2> threads2(xThreads, yThreads);
+	cl::sycl::range<2> blocks2(xBlocks, yBlocks);
 
 	int nBlocks = ceil((float)std::max(dp.nI, dp.nJ) / (float)nThreads);
 
@@ -305,8 +308,12 @@ int CGpuNode::run() try {
 	  dpct::get_default_queue_wait().submit(
 	    [&](cl::sycl::handler &cgh) {
 	      cgh.parallel_for<dpct_kernel_name<class runWaveUpdateKernel_125960>>(
+//	        cl::sycl::range<2>(NJ, NI),
+//	        [=](cl::sycl::item<2> item_ct1) {
 	        cl::sycl::nd_range<3>((blocks * threads), threads),
 	        [=](cl::sycl::nd_item<3> item_ct1) {
+//	        cl::sycl::nd_range<2>((blocks2 * threads2), threads2),
+//	        [=](cl::sycl::nd_item<2> item_ct1) {
 	          runWaveUpdateKernel(kd, dev_h, dev_hMax, dev_d, dev_cR1, dev_fM, dev_fN, dev_cR6, dev_tArr, item_ct1);
 	        });
 	    });
@@ -345,8 +352,12 @@ int CGpuNode::run() try {
 	  dpct::get_default_queue_wait().submit(
 	    [&](cl::sycl::handler &cgh) {
 	      cgh.parallel_for<dpct_kernel_name<class runFluxUpdateKernel_4ed2e3>>(
+//	        cl::sycl::range<2>(NJ, NI),
+//	        [=](cl::sycl::item<2> item_ct1) {
 	        cl::sycl::nd_range<3>((blocks * threads), threads),
 	        [=](cl::sycl::nd_item<3> item_ct1) {
+//	        cl::sycl::nd_range<2>((blocks2 * threads2), threads2),
+//	        [=](cl::sycl::nd_item<2> item_ct1) {
 	          runFluxUpdateKernel(kd, dev_h, dev_d, dev_fM, dev_fN, dev_cR2, dev_cR4, item_ct1);
 	        });
 	    });

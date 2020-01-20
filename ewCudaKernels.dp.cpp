@@ -42,8 +42,8 @@ void runWaveUpdateKernel( KernelData data, float* h, float *hMax, float* d, floa
 
   Params& dp = data.params;
 
-  int i = item_ct1.get_group(1) * item_ct1.get_local_range().get(1) + item_ct1.get_local_id(1) + dp.iMin;
-  int j = item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + dp.jMin;
+  int i = /*item_ct1[1]*/ item_ct1.get_group(1) * item_ct1.get_local_range().get(1) + item_ct1.get_local_id(1) + dp.iMin;
+  int j = /*item_ct1[0]*/ item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + dp.jMin;
   int ij = data.idx(i,j);
   float absH;
 
@@ -71,8 +71,8 @@ void runFluxUpdateKernel( KernelData data, float *h, float *d, float *fM, float 
 
 	Params& dp = data.params;
 
-	int i = item_ct1.get_group(1) * item_ct1.get_local_range().get(1) + item_ct1.get_local_id(1) + dp.iMin;
-	int j = item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + dp.jMin;
+	int i = /*item_ct1[1];*/ item_ct1.get_group(1) * item_ct1.get_local_range().get(1) + item_ct1.get_local_id(1) + dp.iMin;
+	int j = /*item_ct1[0];*/ item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + dp.jMin;
 	int ij = data.idx(i,j);
 
 	if( i <= dp.iMax && j <= dp.jMax && d[ij] != 0 ) {
