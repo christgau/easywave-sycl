@@ -50,7 +50,7 @@ CGpuNode::CGpuNode() {
         dpct::get_device_manager().select_device(dev_id);
     }
 
-    dpct::dpct_device_info di;
+    dpct::device_info di;
     dpct::get_device_manager().current_device().get_device_info(di);
     std::cout << "running in accellerated mode using " << di.get_name() << std::endl;
 	dpct::get_device_manager().current_device().queues_wait_and_throw();
@@ -307,7 +307,7 @@ int CGpuNode::run() try {
 	{
 	  dpct::get_default_queue_wait().submit(
 	    [&](cl::sycl::handler &cgh) {
-	      cgh.parallel_for<dpct_kernel_name<class runWaveUpdateKernel_125960>>(
+	      cgh.parallel_for(
 //	        cl::sycl::range<2>(NJ, NI),
 //	        [=](cl::sycl::item<2> item_ct1) {
 	        cl::sycl::nd_range<3>((blocks * threads), threads),
@@ -331,7 +331,7 @@ int CGpuNode::run() try {
 	{
 	  dpct::get_default_queue_wait().submit(
 	    [&](cl::sycl::handler &cgh) {
-	      cgh.parallel_for<dpct_kernel_name<class runWaveBoundaryKernel_a2e825>>(
+	      cgh.parallel_for(
 	        cl::sycl::nd_range<1>((cl::sycl::range<1>(nBlocks) * cl::sycl::range<1>(nThreads)), cl::sycl::range<1>(nThreads)),
 	        [=](cl::sycl::nd_item<1> item_ct1) {
 	          runWaveBoundaryKernel(kd, dev_h, dev_fM, dev_fN, dev_cB1, dev_cB2, dev_cB3, dev_cB4, item_ct1);
@@ -352,7 +352,7 @@ int CGpuNode::run() try {
 	{
 	  dpct::get_default_queue_wait().submit(
 	    [&](cl::sycl::handler &cgh) {
-	      cgh.parallel_for<dpct_kernel_name<class runFluxUpdateKernel_4ed2e3>>(
+	      cgh.parallel_for(
 //	        cl::sycl::range<2>(NJ, NI),
 //	        [=](cl::sycl::item<2> item_ct1) {
 	        cl::sycl::nd_range<3>((blocks * threads), threads),
@@ -377,7 +377,7 @@ int CGpuNode::run() try {
 	{
 	  dpct::get_default_queue_wait().submit(
 	    [&](cl::sycl::handler &cgh) {
-	      cgh.parallel_for<dpct_kernel_name<class runFluxBoundaryKernel_c6xxx8>>(
+	      cgh.parallel_for(
 	        cl::sycl::nd_range<1>((cl::sycl::range<1>(nBlocks) * cl::sycl::range<1>(nThreads)), cl::sycl::range<1>(nThreads)),
 	        [=](cl::sycl::nd_item<1> item_ct1) {
 //	        cl::sycl::nd_range<1>((cl::sycl::range<1>(nBlocks) * cl::sycl::range<1>(nThreads)), cl::sycl::range<1>(nThreads)),
@@ -403,7 +403,7 @@ int CGpuNode::run() try {
 	{
 	  dpct::get_default_queue_wait().submit(
 	    [&](cl::sycl::handler &cgh) {
-	      cgh.parallel_for<dpct_kernel_name<class runGridExtendKernel_8a7d4e>>(
+	      cgh.parallel_for(
 	        cl::sycl::nd_range<1>((cl::sycl::range<1>(nBlocks) * cl::sycl::range<1>(nThreads)), cl::sycl::range<1>(nThreads)),
 	        [=](cl::sycl::nd_item<1> item_ct1) {
 	          runGridExtendKernel(kd, dev_h, item_ct1);
