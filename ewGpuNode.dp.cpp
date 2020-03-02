@@ -191,10 +191,6 @@ int CGpuNode::copyIntermediate() {
     memset((void*)h, 0, sizeof(float) * dp.nI * dp.nJ);
 	dpct::get_default_queue_wait().memcpy( (void*)(h), (void*)(data.h_ptr + dp.lpad), dp.nJ * sizeof(float) * dp.nI ).wait();
 
-    FILE* f = fopen("/tmp/h.dat", "w");
-    fwrite(h, sizeof(float), dp.nJ * dp.nI, f);
-    fclose(f);
-
 	/* copy finished */
 	copied = true;
 
