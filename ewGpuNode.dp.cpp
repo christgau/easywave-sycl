@@ -39,7 +39,7 @@
 #include <cmath>
 #include "utilits.h"
 
-/* ugly as hell but a quickfix for runtime issue (undefined reference) when  */
+/* ugly as hell but a quickfix for runtime issue (undefined reference) when compiling for DPC++ */
 #include "ewCudaKernels.dp.cpp"
 
 CGpuNode::CGpuNode() {
@@ -296,16 +296,11 @@ int CGpuNode::run() try {
     float* dev_cB3 = data.cB3_ptr;
     float* dev_cB4 = data.cB4_ptr;
 
-	/*
-	DPCT1012:22: Detected kernel execution time measurement pattern and generated an initial code for time measurements in SYCL. You can change the way time is measured depending on your goals.
-	*/
 	evtStart[0] = std::chrono::high_resolution_clock::now();
 	{
 	  dpct::get_default_queue_wait().submit(
 	    [&](cl::sycl::handler &cgh) {
 	      cgh.parallel_for(
-//	        cl::sycl::range<2>(NJ, NI),
-//	        [=](cl::sycl::item<2> item_ct1) {
 	        cl::sycl::nd_range<3>((blocks * threads), threads),
 	        [=](cl::sycl::nd_item<3> item_ct1) {
 //	        cl::sycl::nd_range<2>((blocks2 * threads2), threads2),
@@ -315,9 +310,6 @@ int CGpuNode::run() try {
 	    });
 	}
 //	dpct::get_device_manager().current_device().queues_wait_and_throw();
-	/*
-	DPCT1012:23: Detected kernel execution time measurement pattern and generated an initial code for time measurements in SYCL. You can change the way time is measured depending on your goals.
-	*/
 	evtEnd[0] = std::chrono::high_resolution_clock::now();
 
 	/*
@@ -336,21 +328,13 @@ int CGpuNode::run() try {
 	}
 //	dpct::get_device_manager().current_device().queues_wait_and_throw();
 
-	/*
-	DPCT1012:25: Detected kernel execution time measurement pattern and generated an initial code for time measurements in SYCL. You can change the way time is measured depending on your goals.
-	*/
 	evtEnd[1] = std::chrono::high_resolution_clock::now();
 
-	/*
-	DPCT1012:26: Detected kernel execution time measurement pattern and generated an initial code for time measurements in SYCL. You can change the way time is measured depending on your goals.
-	*/
 	evtStart[2] = std::chrono::high_resolution_clock::now();
 	{
 	  dpct::get_default_queue_wait().submit(
 	    [&](cl::sycl::handler &cgh) {
 	      cgh.parallel_for(
-//	        cl::sycl::range<2>(NJ, NI),
-//	        [=](cl::sycl::item<2> item_ct1) {
 	        cl::sycl::nd_range<3>((blocks * threads), threads),
 	        [=](cl::sycl::nd_item<3> item_ct1) {
 //	        cl::sycl::nd_range<2>((blocks2 * threads2), threads2),
@@ -360,15 +344,9 @@ int CGpuNode::run() try {
 	    });
 	}
 
-	/*
-	DPCT1012:27: Detected kernel execution time measurement pattern and generated an initial code for time measurements in SYCL. You can change the way time is measured depending on your goals.
-	*/
 //	dpct::get_device_manager().current_device().queues_wait_and_throw();
 	evtEnd[2] = std::chrono::high_resolution_clock::now();
 
-	/*
-	DPCT1012:28: Detected kernel execution time measurement pattern and generated an initial code for time measurements in SYCL. You can change the way time is measured depending on your goals.
-	*/
 	evtStart[3] = std::chrono::high_resolution_clock::now();
 	{
 	  dpct::get_default_queue_wait().submit(
@@ -376,18 +354,11 @@ int CGpuNode::run() try {
 	      cgh.parallel_for(
 	        cl::sycl::nd_range<1>((cl::sycl::range<1>(nBlocks) * cl::sycl::range<1>(nThreads)), cl::sycl::range<1>(nThreads)),
 	        [=](cl::sycl::nd_item<1> item_ct1) {
-//	        cl::sycl::nd_range<1>((cl::sycl::range<1>(nBlocks) * cl::sycl::range<1>(nThreads)), cl::sycl::range<1>(nThreads)),
-//	        [=](cl::sycl::nd_item<1> item_ct1) {
-//              runFluxBoundaryKernel( kd, dev_h, dev_fM, dev_fN, dev_cR2, dev_cR4, item_ct1);
-//              runFluxBoundaryKernel( kd, dev_h, dev_fM, dev_fN, dev_cR2, dev_cR4, item_ct1);
               runFluxBoundaryKernel( kd, dev_h, dev_fM, dev_fN, dev_cR2, dev_cR4, item_ct1);
 	        });
 	    });
 	}
 
-	/*
-	DPCT1012:29: Detected kernel execution time measurement pattern and generated an initial code for time measurements in SYCL. You can change the way time is measured depending on your goals.
-	*/
 //	dpct::get_device_manager().current_device().queues_wait_and_throw();
 	evtEnd[3] = std::chrono::high_resolution_clock::now();
 
@@ -409,9 +380,6 @@ int CGpuNode::run() try {
 
 //	dpct::get_device_manager().current_device().queues_wait_and_throw();
 
-	/*
-	DPCT1012:31: Detected kernel execution time measurement pattern and generated an initial code for time measurements in SYCL. You can change the way time is measured depending on your goals.
-	*/
 	evtEnd[4] = std::chrono::high_resolution_clock::now();
 
 	int MinMax[4] = { 0 };
