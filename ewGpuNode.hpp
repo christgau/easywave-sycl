@@ -33,9 +33,6 @@
 #ifndef EW_GPUNODE_H
 #define EW_GPUNODE_H
 
-#include <atomic>
-#include <chrono>
-
 /* FIXME: check header dependencies */
 #include <CL/sycl.hpp>
 #include <dpct/dpct.hpp>
@@ -43,8 +40,9 @@
 #include "ewNode.h"
 #include <stdio.h>
 
-//#define CUDA_CALL(x) if( x != cudaSuccess ) { fprintf( stderr, "Error in file %s on line %u: %s\n", __FILE__, __LINE__, cudaGetErrorString( cudaGetLastError() ) ); return 1; }
-#define CUDA_CALL(x) x
+#include <chrono>
+
+#define CUDA_CALL(x) if( x != cudaSuccess ) { fprintf( stderr, "Error in file %s on line %u: %s\n", __FILE__, __LINE__, cudaGetErrorString( cudaGetLastError() ) ); return 1; }
 
 #undef idx
 
@@ -68,31 +66,31 @@ public:
 };
 
 class KernelData {
+
 public:
 	/* 2-dim */
-	float *d_ptr;
-	float *h_ptr;
-	float *hMax_ptr;
-	float *fM_ptr;
-	float *fN_ptr;
-	float *cR1_ptr;
-	float *cR2_ptr;
-	float *cR4_ptr;
-	float *tArr_ptr;
+	float *d;
+	float *h;
+	float *hMax;
+	float *fM;
+	float *fN;
+	float *cR1;
+	float *cR2;
+	float *cR4;
+	float *tArr;
 
 	/* 1-dim */
-	float *cR6_ptr;
-	float *cB1_ptr;
-	float *cB2_ptr;
-	float *cB3_ptr;
-	float *cB4_ptr;
+	float *cR6;
+	float *cB1;
+	float *cB2;
+	float *cB3;
+	float *cB4;
 
 	Params params;
 
-	//cl::sycl::int4 *g_MinMax;
-	int *g_MinMax;
+	sycl::int4 *g_MinMax;
 
-	int le( int ij ) { return ij - params.pI; }
+        int le( int ij ) { return ij - params.pI; }
 	int ri( int ij ) { return ij + params.pI; }
 	int up( int ij ) { return ij + 1; }
 	int dn( int ij ) { return ij - 1; }
@@ -111,11 +109,9 @@ protected:
 	/* specifies if data was already copied in the current calculation step */
 	bool copied;
 
-//	cl::sycl::event evtStart[5];
-//	cl::sycl::event evtEnd[5];
 	std::chrono::high_resolution_clock::time_point evtStart[5];
 	std::chrono::high_resolution_clock::time_point evtEnd[5];
-	float dur[5];
+        float dur[5];
 
 public:
 	CGpuNode();

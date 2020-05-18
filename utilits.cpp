@@ -17,12 +17,12 @@
  * results in scientific communications) commit to make this modified source
  * code available in a repository that is easily and freely accessible for a
  * duration of five years after the communication of the obtained results.
- *
+ * 
  * You may not use this work except in compliance with the Licence.
- *
+ * 
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/software/page/eupl
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,6 +32,8 @@
 
 // last modified 11.07.2012
 
+#include <CL/sycl.hpp>
+#include <dpct/dpct.hpp>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -932,8 +934,8 @@ double utlNormal( int& seed, double avg, double stdev )
   r1 = utlRandom( seed );
   r2 = utlRandom( seed );
   w1 = log10(r1);
-  w1 = sqrt(-2*w1);
-  w2 = sin(2*My_PI * r2);
+  w1 = sqrt(-2 * w1);
+  w2 = sin(2 * My_PI * r2);
 
   return ( avg + stdev*w1*w2 );
 }

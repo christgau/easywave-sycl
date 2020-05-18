@@ -17,12 +17,12 @@
  * results in scientific communications) commit to make this modified source
  * code available in a repository that is easily and freely accessible for a
  * duration of five years after the communication of the obtained results.
- * 
+ *
  * You may not use this work except in compliance with the Licence.
- * 
+ *
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/software/page/eupl
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,7 +35,9 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "easywave.h"
+#include "ewdefs.h"
+
+#include <string>
 
 #define CHKRET( x ) if( (x) == NULL ) return 1;
 
@@ -137,22 +139,61 @@ protected:
 	float *tArr;
 	float *topo;
 
+	int slice_size;
+
 public:
 	virtual float& operator()( const int idx1, const int idx2 ) {
 
-		return ((float**)&d)[idx2][idx1];
+        return ((float*) (this->getBuf(idx2)))[idx1];
+//		return d[idx2 * this->slice_size + idx1];
 	}
 
-	void *getBuf( int idx ) { return ((float**)&d)[idx]; }
+	void *getBuf( int idx ) {
+
+        switch (idx) {
+            case iD:
+                return this->d;
+            case iH:
+                return this->h;
+            case iHmax:
+                return this->hMax;
+            case iM:
+                return this->fM;
+            case iN:
+                return this->fN;
+            case iR1:
+                return this->cR1;
+            case iR2:
+                return this->cR2;
+            case iR3:
+                return this->cR3;
+            case iR4:
+                return this->cR4;
+            case iR5:
+                return this->cR5;
+            case iTime:
+                return this->tArr;
+            case iTopo:
+                return this->topo;
+            default:
+                throw std::string("invalid variable index");
+        }
+
+        return NULL;
+
+//        return (void*) (d + (idx * this->slice_size));
+    }
 
 	virtual void initMemory( int index, int val ) {
 
 		memset( getBuf(index), 0, NLat * NLon * sizeof(float) );
-
 	}
 
 	virtual int mallocMem() {
 
+		this->slice_size = NLon * NLat;
+
+//		CHKRET( this->d = (float*) malloc( sizeof(float) * MAX_VARS_PER_NODE * NLon * NLat ) );
 		CHKRET( this->d = (float*) malloc( sizeof(float) * NLon * NLat ) );
 		CHKRET( this->h = (float*) malloc( sizeof(float) * NLon * NLat ) );
 		CHKRET( this->hMax = (float*) malloc( sizeof(float) * NLon * NLat ) );

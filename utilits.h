@@ -34,9 +34,8 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include <CL/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include <math.h>
+#include <stdio.h>
 
 #define MaxFileRecordLength 16384
 #define RealMax 1.e+30
@@ -45,9 +44,6 @@
 #define My_PI  3.14159265358979
 #define g2r(x)  (((double)(x))*My_PI/180)
 #define r2g(x)  (((double)(x))/My_PI*180)
-//#define cosdeg(x) cos(cosdeg)
-//#define sindeg(x) sin(sindeg)
-//#define tandeg(x) tan(tandeg)
 #define cosdeg(x) cos(g2r(x))
 #define sindeg(x) sin(g2r(x))
 #define tandeg(x) tan(g2r(x))

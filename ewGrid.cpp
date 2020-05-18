@@ -17,12 +17,12 @@
  * results in scientific communications) commit to make this modified source
  * code available in a repository that is easily and freely accessible for a
  * duration of five years after the communication of the obtained results.
- *
+ * 
  * You may not use this work except in compliance with the Licence.
- *
+ * 
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/software/page/eupl
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,12 +30,15 @@
  * limitations under the Licence.
  */
 
+#include <CL/sycl.hpp>
+#include <dpct/dpct.hpp>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "utilits.h"
 #include "easywave.h"
+#include <cmath>
 
 int NLon,NLat;
 double LonMin,LonMax,LatMin,LatMax;
@@ -176,8 +179,9 @@ int ewLoadBathymetry()
 	  for( j=1; j<=NLat; j++ ) {
 		  m = idx(j,i);
 		  if( Node(m, iD) == 0.0f ) continue;
-		  dtLoc = My_min( dtLoc, 0.8 * (Dx*cosdeg(getLat(j))) / sqrt(Gravity*Node(m, iD)) );
-	  }
+        dtLoc = My_min(dtLoc, 0.8 * (Dx * cosdeg(getLat(j))) /
+                                  sqrt(Gravity * Node(m, iD)));
+          }
 	}
 
     Log.print("Stable CFL time step: %g sec", dtLoc);

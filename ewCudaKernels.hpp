@@ -1,4 +1,3 @@
-
 #include <CL/sycl.hpp>
 #include <dpct/dpct.hpp>
 /*
@@ -36,10 +35,15 @@
 #ifndef EW_KERNELS_H
 #define EW_KERNELS_H
 
- void runWaveUpdateKernel( KernelData data, float *h, float *hMax, float* d, float *cR1, float* fM, float* fN, float *cR6, float *tArr, cl::sycl::nd_item<3> item_ct1);
- void runWaveBoundaryKernel( KernelData data, float *h, float *fM, float *fN, float *cB1, float *cB2, float *cB3, float *cB4, cl::sycl::nd_item<3> item_ct1);
- void runFluxUpdateKernel( KernelData data, float *h, float *d, float *fM, float *fN, float *cR2, float *cR4, cl::sycl::nd_item<3> item_ct1);
- void runFluxBoundaryKernel( KernelData data, float *h, float *fM, float *fN, float *cR2, float *cR4, cl::sycl::nd_item<3> item_ct1);
- void runGridExtendKernel( KernelData data, float *h, cl::sycl::nd_item<3> item_ct1);
+SYCL_EXTERNAL void runWaveUpdateKernel(KernelData data,
+                                       sycl::nd_item<3> item_ct1);
+SYCL_EXTERNAL void runWaveBoundaryKernel(KernelData data,
+                                         sycl::nd_item<3> item_ct1);
+SYCL_EXTERNAL void runFluxUpdateKernel(KernelData data,
+                                       sycl::nd_item<3> item_ct1);
+SYCL_EXTERNAL void runFluxBoundaryKernel(KernelData data,
+                                         sycl::nd_item<3> item_ct1);
+SYCL_EXTERNAL void runGridExtendKernel(KernelData data,
+                                       sycl::nd_item<3> item_ct1);
 
 #endif /* EW_KERNELS_H */

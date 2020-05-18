@@ -17,12 +17,12 @@
  * results in scientific communications) commit to make this modified source
  * code available in a repository that is easily and freely accessible for a
  * duration of five years after the communication of the obtained results.
- *
+ * 
  * You may not use this work except in compliance with the Licence.
- *
+ * 
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/software/page/eupl
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,11 +30,14 @@
  * limitations under the Licence.
  */
 
+#include <CL/sycl.hpp>
+#include <dpct/dpct.hpp>
 #include <stdio.h>
 #include <string.h>
 
 #include "utilits.h"
 #include "cOkadaFault.h"
+#include <cmath>
 
 static const double Rearth=6384.e+3;
 
@@ -188,12 +191,12 @@ int cOkadaFault::check()
       Err.post( "cOkadaFault::check: internal error" ); return FLT_ERR_INTERNAL;
     }
 
-    mw = 2./3. * (log10(mu*length*width*slip) - 9.1);
+    mw = 2. / 3. * (log10(mu * length * width * slip) - 9.1);
   }
   else if( mw && !slip ) {
     if( !length && !width ) {
       // scaling relations used by JMA
-      length = pow( 10., -1.80 + 0.5*mw ) * 1000;
+      length = pow(10., -1.80 + 0.5 * mw) * 1000;
       width = length/2;
     }
     else if( length && !width ) {
@@ -212,7 +215,7 @@ int cOkadaFault::check()
   else if( mw && slip ) {
     if( !length && !width ) {
       double area = mw2m0() / mu / slip;
-      length = sqrt( 2 * area );
+      length = sqrt(2 * area);
       width = length/2;
     }
     else if( length && !width ) {
@@ -222,7 +225,7 @@ int cOkadaFault::check()
       length = mw2m0() / mu / slip / width;
     }
     else if( length && width ) {
-      if( fabs( 1 - mu*slip*length*width/mw2m0() ) > 0.01 ) {
+      if (fabs(1 - mu * slip * length * width / mw2m0()) > 0.01) {
         Err.post( "cOkadaFault::check: data inconsistency" ); return FLT_ERR_DATA;
       }
     }
@@ -242,9 +245,9 @@ int cOkadaFault::check()
         depth = ztop + width/2*sind;
       }
       else {
-        Err.post( "cOkadaFault::check: negative ztop" );
+        Err.post( "cOkadaFault::check: negative ztop" ); 
         return FLT_ERR_ZTOP;
-      }
+      } 
     }
     zbot = depth + width/2*sind;
     break;
@@ -261,9 +264,9 @@ int cOkadaFault::check()
         depth = ztop + width*sind;
       }
       else {
-        Err.post( "cOkadaFault::check: negative ztop" );
+        Err.post( "cOkadaFault::check: negative ztop" ); 
         return FLT_ERR_ZTOP;
-      }
+      } 
     }
     zbot = depth;
     break;
@@ -284,10 +287,7 @@ int cOkadaFault::check()
 
 //=========================================================================
 double cOkadaFault::mw2m0()
-{
-  return pow(10., 3.*mw/2 + 9.1);
-}
-
+{ return pow(10., 3. * mw / 2 + 9.1); }
 
 //=========================================================================
 double cOkadaFault::getM0()

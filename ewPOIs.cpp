@@ -17,12 +17,12 @@
  * results in scientific communications) commit to make this modified source
  * code available in a repository that is easily and freely accessible for a
  * duration of five years after the communication of the obtained results.
- *
+ * 
  * You may not use this work except in compliance with the Licence.
- *
+ * 
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/software/page/eupl
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,12 +30,15 @@
  * limitations under the Licence.
  */
 
+#include <CL/sycl.hpp>
+#include <dpct/dpct.hpp>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "utilits.h"
 #include "easywave.h"
+#include <cmath>
 
 //#define SSHMAX_TO_SINGLE_FILE 0
 
@@ -148,14 +151,15 @@ int ewLoadPOIs()
             n = idx(j,i);
             depth = Node(n, iD);
             if( depth < Par.poiDepthMin || depth > Par.poiDepthMax ) continue;
-            d2 = pow( lenLon*(lon-getLon(i)), 2. ) + pow( lenLat*(lat-getLat(j)), 2. );
+            d2 = pow(lenLon * (lon - getLon(i)), 2.) +
+                 pow(lenLat * (lat - getLat(j)), 2.);
             if( d2 < d2min ) { d2min = d2; nmin = n; }
           }
 
         if( nmin > 0 ) break;
       }
 
-      if( sqrt(d2min) > Par.poiDistMax ) {
+      if (sqrt(d2min) > Par.poiDistMax) {
         Log.print( "! Closest water node too far: %s", record );
         if( Par.poiReport ) fprintf( fpRej, "%s\n", record );
         continue;
@@ -167,7 +171,9 @@ int ewLoadPOIs()
       NPOIs++;
       i = nmin/NLat + 1;
       j = nmin - (i-1)*NLat + 1;
-      if( Par.poiReport ) fprintf( fpAcc, "%s %.4f %.4f   %.4f %.4f %.1f   %.3f\n", id, lon, lat, getLon(i), getLat(j), Node(nmin, iD), sqrt(d2min)/1000 );
+      if( Par.poiReport )
+        fprintf(fpAcc, "%s %.4f %.4f   %.4f %.4f %.1f   %.3f\n", id, lon, lat,
+                getLon(i), getLat(j), Node(nmin, iD), sqrt(d2min) / 1000);
     }
 
     fclose( fp );
@@ -211,7 +217,7 @@ int ewSavePOIs()
   for( n=0; n<NPOIs; n++ ) {
 
     if( flagRunupPOI[n] )
-      ampFactor = pow( Node(idxPOI[n], iD), 0.25 );
+      ampFactor = pow(Node(idxPOI[n], iD), 0.25);
     else
       ampFactor = 1.;
 

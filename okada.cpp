@@ -34,6 +34,8 @@
 // Bull.Seism.Soc.Am., v.75, p.1135-1154.
 // okada@bosai.go.jp
 
+#include <CL/sycl.hpp>
+#include <dpct/dpct.hpp>
 #include <math.h>
 #define My_PI 3.14159265358979
 #define DISPLMAX 1000
@@ -72,9 +74,9 @@ int okada( double L,double W,double D,double sinD,double cosD,double U1,double U
   double U1x,U2x,U1y,U2y,U1z,U2z;
 
   sdip = sinD;
-  if( fabs(sdip)<1.e-10 ) sdip = 0;
+  if (fabs(sdip) < 1.e-10) sdip = 0;
   cdip = cosD;
-  if( fabs(cdip)<1.e-10 ) cdip = 0;
+  if (fabs(cdip) < 1.e-10) cdip = 0;
   p = y*cdip + D*sdip;
   q = y*sdip - D*cdip;
   width = W;
@@ -87,23 +89,23 @@ int okada( double L,double W,double D,double sinD,double cosD,double U1,double U
   if( U1 != 0 ) {
     if( flag_xy ) {
       U1x = -U1/2/My_PI * fun_Chinnery( f_ssUx, x,y );
-      if( fabs(U1x) > DISPLMAX ) U1x = 0;
+      if (fabs(U1x) > DISPLMAX) U1x = 0;
       U1y = -U1/2/My_PI * fun_Chinnery( f_ssUy, x,y );
-      if( fabs(U1y) > DISPLMAX ) U1y = 0;
+      if (fabs(U1y) > DISPLMAX) U1y = 0;
     }
     U1z = -U1/2/My_PI * fun_Chinnery( f_ssUz, x,y );
-    if( fabs(U1z) > DISPLMAX ) U1z = 0;
+    if (fabs(U1z) > DISPLMAX) U1z = 0;
   }
 
   if( U2 != 0 ) {
     if( flag_xy ) {
       U2x = -U2/2/My_PI * fun_Chinnery( f_dsUx, x,y );
-      if( fabs(U2x) > DISPLMAX ) U2x = 0;
+      if (fabs(U2x) > DISPLMAX) U2x = 0;
       U2y = -U2/2/My_PI * fun_Chinnery( f_dsUy, x,y );
-      if( fabs(U2y) > DISPLMAX ) U2y = 0;
+      if (fabs(U2y) > DISPLMAX) U2y = 0;
     }
     U2z = -U2/2/My_PI * fun_Chinnery( f_dsUz, x,y );
-    if( fabs(U2z) > DISPLMAX ) U2z = 0;
+    if (fabs(U2z) > DISPLMAX) U2z = 0;
   }
 
   *Ux = U1x + U2x;
@@ -141,7 +143,7 @@ double f_ssUx(double ksi, double eta)
         term2 = -My_PI;
     }
   } else {
-    term2 = atan(ksi*eta/q/R);
+    term2 = atan(ksi * eta / q / R);
   }
 
 
@@ -217,7 +219,7 @@ double f_dsUy(double ksi, double eta)
         term2 = -My_PI;
     }
   } else {
-    term2 = atan(ksi*eta/q/R);
+    term2 = atan(ksi * eta / q / R);
   }
   
   val = yp*q/R/(R+ksi) + cdip*term2 - I1*sdip*cdip;
@@ -245,7 +247,7 @@ double f_dsUz(double ksi, double eta)
         term2 = -My_PI;
     }
   } else {
-    term2 = atan(ksi*eta/q/R);
+    term2 = atan(ksi * eta / q / R);
   }
   
   val = dp*q/R/(R+ksi) + sdip*term2 - I5*sdip*cdip;
@@ -259,7 +261,7 @@ double fun_R( double ksi, double eta )
 {
   double val;
 
-  val = sqrt(ksi*ksi + eta*eta + q*q);
+  val = sqrt(ksi * ksi + eta * eta + q * q);
 
   return val;
 }
@@ -269,7 +271,7 @@ double fun_X( double ksi, double eta )
 {
   double val;
 
-  val = sqrt(ksi*ksi + q*q);
+  val = sqrt(ksi * ksi + q * q);
 
   return val;
 }
@@ -319,7 +321,7 @@ double fun_I2( double ksi, double eta )
   R = fun_R(ksi,eta);
   I3 = fun_I3(ksi,eta);
 
-  val = elast*(-log(R+eta)) - I3;
+  val = elast * (-log(R + eta)) - I3;
 
   return val;
 }
@@ -335,9 +337,10 @@ double fun_I3( double ksi, double eta )
   I4 = fun_I4(ksi,eta);
 
   if( cdip != 0 )
-    val = elast*(1./cdip*yp/(R+dp) - log(R+eta)) + sdip/cdip*I4;
+    val = elast * (1. / cdip * yp / (R + dp) - log(R + eta)) + sdip / cdip * I4;
   else
-    val = elast/2*(eta/(R+dp) + yp*q/(R+dp)/(R+dp) - log(R+eta));
+    val = elast / 2 *
+          (eta / (R + dp) + yp * q / (R + dp) / (R + dp) - log(R + eta));
 
   return val;
 }
@@ -351,7 +354,7 @@ double fun_I4( double ksi, double eta )
   dp = fun_dp(ksi,eta);
 
   if( cdip != 0 )
-    val = elast/cdip*(log(R+dp)-sdip*log(R+eta));
+    val = elast / cdip * (log(R + dp) - sdip * log(R + eta));
   else
     val = -elast*q/(R+dp);
 
@@ -372,7 +375,9 @@ double fun_I5( double ksi, double eta )
   dp = fun_dp(ksi,eta);
 
   if( cdip != 0 )
-    val = elast*2/cdip * atan( ( eta*(X+q*cdip)+X*(R+X)*sdip ) / (ksi*(R+X)*cdip) );
+    val = elast * 2 / cdip *
+          atan((eta * (X + q * cdip) + X * (R + X) * sdip) /
+               (ksi * (R + X) * cdip));
   else
     val = -elast*ksi*sdip/(R+dp);
 

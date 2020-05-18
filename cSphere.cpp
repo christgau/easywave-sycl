@@ -17,12 +17,12 @@
  * results in scientific communications) commit to make this modified source
  * code available in a repository that is easily and freely accessible for a
  * duration of five years after the communication of the obtained results.
- *
+ * 
  * You may not use this work except in compliance with the Licence.
- *
+ * 
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/software/page/eupl
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,13 +30,15 @@
  * limitations under the Licence.
  */
 
+#include <CL/sycl.hpp>
+#include <dpct/dpct.hpp>
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 
 #include "utilits.h"
 #include "cSphere.h"
-
+#include <cmath>
 
 //=========================================================================
 // Constructor
@@ -275,11 +277,11 @@ double cObsArray::residual( cObsArray& ref )
 
   for( int n=0; n<nPos; n++ ) {
     for( int k=0; k<nObs; k++ ) {
-      resid += pow( (obs[n][k] - ref.obs[n][k]), 2. );
+      resid += pow((obs[n][k] - ref.obs[n][k]), 2.);
     }
   }
 
-  resid = sqrt( resid )/nPos/nObs;
+  resid = sqrt(resid) / nPos / nObs;
 
   return resid;
 }
@@ -298,7 +300,7 @@ double cObsArray::norm()
     }
   }
 
-  norm = sqrt( norm )/nPos/nObs;
+  norm = sqrt(norm) / nPos / nObs;
 
   return norm;
 }
@@ -311,7 +313,8 @@ double GeoDistOnSphere( const double lon1, const double lat1, const double lon2,
   const double REARTH = 6378.137;  // Earth radius in km along equator
   double a,c,dist,rad;
 
-  a = pow( sin(G2R*(lat2-lat1)/2), 2. ) + cos(G2R*lat1)*cos(G2R*lat2)*pow( sin(G2R*(lon2-lon1)/2), 2. );
+  a = pow(sin(G2R * (lat2 - lat1) / 2), 2.) +
+      cos(G2R * lat1) * cos(G2R * lat2) * pow(sin(G2R * (lon2 - lon1) / 2), 2.);
   rad = sqrt(a);
   if( rad > 1 ) rad = 1;
   c = 2 * asin(rad);
@@ -339,7 +342,8 @@ double GeoStrikeOnSphere( double lon1, double lat1, double lon2, double lat2 )
   }
   else {
     distRad = GeoDistOnSphere( lon1,lat1,lon2,lat2 ) / REARTH;
-    strike = R2G * asin( cos(G2R*lat2)*sin(G2R*(lon2-lon1)) / sin(distRad) );
+    strike =
+        R2G * asin(cos(G2R * lat2) * sin(G2R * (lon2 - lon1)) / sin(distRad));
 
     if( (lat2 > lat1) && (lon2 > lon1) ) {
     }

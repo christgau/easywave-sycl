@@ -17,12 +17,12 @@
  * results in scientific communications) commit to make this modified source
  * code available in a repository that is easily and freely accessible for a
  * duration of five years after the communication of the obtained results.
- *
+ * 
  * You may not use this work except in compliance with the Licence.
- *
+ * 
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/software/page/eupl
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,12 +30,14 @@
  * limitations under the Licence.
  */
 
+#include <CL/sycl.hpp>
+#include <dpct/dpct.hpp>
 #include <stdio.h>
 #include <string.h>
 
 #include "utilits.h"
 #include "easywave.h"
-
+#include <cmath>
 
 static char *IndexFile;
 static int Nrec2DOutput;
@@ -86,10 +88,6 @@ int ewOut2D()
   sprintf( record, "%s.2D.%5.5d.ssh", Par.modelName, Par.time );
   fp = fopen( record, "wb" );
   fwrite( "DSBB", 4, 1, fp );
-  /*
-  fwrite( &nOutI, sizeof(short), 1, fp );
-  fwrite( &nOutJ, sizeof(short), 1, fp );
-  */
   fwrite( &nOutI, sizeof(short), 1, fp );
   fwrite( &nOutJ, sizeof(short), 1, fp );
   fwrite( &lonOutMin, sizeof(double), 1, fp );
@@ -101,7 +99,7 @@ int ewOut2D()
   for( j=Jmin; j<=Jmax; j++ ) {
     for( i=Imin; i<=Imax; i++ ) {
       m = idx(j,i);
-      if( fabs(Node(m, iH)) < Par.sshTransparencyThreshold )
+      if (fabs(Node(m, iH)) < Par.sshTransparencyThreshold)
         ftmp = (float)9999;
       else
         ftmp = (float)Node(m, iH);

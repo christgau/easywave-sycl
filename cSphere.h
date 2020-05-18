@@ -17,12 +17,12 @@
  * results in scientific communications) commit to make this modified source
  * code available in a repository that is easily and freely accessible for a
  * duration of five years after the communication of the obtained results.
- * 
+ *
  * You may not use this work except in compliance with the Licence.
- * 
+ *
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/software/page/eupl
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,6 +32,8 @@
 
 #ifndef ONSPHERE_H
 #define ONSPHERE_H
+
+#include <stdio.h>
 
 #define Re 6384.e+3          // Earth radius
 

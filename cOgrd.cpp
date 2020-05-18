@@ -30,7 +30,8 @@
  * limitations under the Licence.
  */
 
-#include <stdio.h>
+#include <CL/sycl.hpp>
+#include <dpct/dpct.hpp>
 #include <string.h>
 #include <math.h>
 
@@ -789,7 +790,7 @@ double cOgrd::getMaxAbsVal()
 
 
   for( vmax=-RealMax, l=0; l<nnod; l++ )
-    if( fabs(val[l]) > vmax )
+    if (fabs(val[l]) > vmax)
       vmax = fabs(val[l]);
 
   return vmax;
@@ -805,7 +806,7 @@ double cOgrd::getMaxAbsVal( int& i, int& j )
 
 
   for( lmax=0,vmax=-RealMax, l=0; l<nnod; l++ ) {
-    if( fabs(val[l]) > vmax ) {
+    if (fabs(val[l]) > vmax) {
       vmax = fabs(val[l]);
       lmax = l;
     }
@@ -825,13 +826,17 @@ double cOgrd::getMaxAbsValBnd()
   double vmax=-RealMax;
 
   for( i=0; i<nx; i++ ) {
-    if( fabs(val[idx(i,0)]) > vmax ) vmax = fabs(val[idx(i,0)]);
-    if( fabs(val[idx(i,ny-1)]) > vmax ) vmax = fabs(val[idx(i,ny-1)]);
+    if (fabs(val[idx(i, 0)]) > vmax)
+      vmax = fabs(val[idx(i, 0)]);
+    if (fabs(val[idx(i, ny - 1)]) > vmax)
+      vmax = fabs(val[idx(i, ny - 1)]);
   }
 
   for( j=0; j<ny; j++ ) {
-    if( fabs(val[idx(0,j)]) > vmax ) vmax = fabs(val[idx(0,j)]);
-    if( fabs(val[idx(nx-1,j)]) > vmax ) vmax = fabs(val[idx(nx-1,j)]);
+    if (fabs(val[idx(0, j)]) > vmax)
+      vmax = fabs(val[idx(0, j)]);
+    if (fabs(val[idx(nx - 1, j)]) > vmax)
+      vmax = fabs(val[idx(nx - 1, j)]);
   }
 
   return vmax;

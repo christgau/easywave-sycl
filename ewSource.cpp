@@ -17,12 +17,12 @@
  * results in scientific communications) commit to make this modified source
  * code available in a repository that is easily and freely accessible for a
  * duration of five years after the communication of the obtained results.
- *
+ * 
  * You may not use this work except in compliance with the Licence.
- *
+ * 
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/software/page/eupl
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,6 +30,8 @@
  * limitations under the Licence.
  */
 
+#include <CL/sycl.hpp>
+#include <dpct/dpct.hpp>
 #include <stdio.h>
 #include <string.h>
 
@@ -37,6 +39,7 @@
 #include "cOgrd.h"
 #include "cOkadaEarthquake.h"
 #include "easywave.h"
+#include <cmath>
 
 int Imin;
 int Imax;
@@ -79,7 +82,7 @@ int ewSource()
     int effSymSource = 0;
     long l;
     double dist,energy,factLat,effRad,effMax;
-
+    
     ierr = eq.read( Par.fileSource ); if(ierr) return ierr;
 
     if( Par.adjustZtop ) {
@@ -136,33 +139,34 @@ int ewSource()
     // set grid resolution, grid dimensions will be set automatically
     uZ.dx = DLon; uZ.dy = DLat;
     ierr = eq.calculate( uZ ); if(ierr) return ierr;
-
+    
     if( effSymSource ) {
       // integrate for tsunami energy
       energy = 0.;
       for( j=0; j<uZ.ny; j++ ) {
         factLat = Dx*cosdeg(uZ.getY(0,j))*Dy;
         for( i=0; i<uZ.nx; i++ )
-          energy += pow(uZ(i,j),2.)*factLat;
+          energy += pow(uZ(i, j), 2.) * factLat;
       }
       energy *= (1000*9.81/2);
-      effRad = eq.fault[0].length/sqrt(2*M_PI);
-      effMax = 1./effRad / sqrt(M_PI/2) / sqrt(1000*9.81/2) * sqrt(energy);
+      effRad = eq.fault[0].length / sqrt(2 * M_PI);
+      effMax =
+          1. / effRad / sqrt(M_PI / 2) / sqrt(1000 * 9.81 / 2) * sqrt(energy);
       Log.print( "Effective source radius: %g km,  max height: %g m", effRad/1000, effMax );
-
+  
       // transfer uplift onto tsunami grid and define deformed area for acceleration
       for( i=0; i<uZ.nx; i++ ) {
         for( j=0; j<uZ.ny; j++ ) {
           dist = GeoDistOnSphere( uZ.getX(i,j),uZ.getY(i,j), eq.fault[0].lon,eq.fault[0].lat ) * 1000;
           if( dist < effRad )
-            uZ(i,j) = effMax*cos(M_PI/2*dist/effRad);
+            uZ(i, j) = effMax * cos(M_PI / 2 * dist / effRad);
           else
             uZ(i,j) = 0.;
         }
       }
-
+      
     } // effective source
-
+  
   } // src_type == fault
 
   // remove noise in the source
@@ -176,14 +180,15 @@ int ewSource()
 
     for( i=0; i<uZ.nx; i++ ) {
       for( j=0; j<uZ.ny; j++ ) {
-        if( fabs(uZ(i,j)) < absuzmin ) uZ(i,j) = 0;
+        if (fabs(uZ(i, j)) < absuzmin) uZ(i,j) = 0;
       }
     }
 
   }
 
   // calculated (if needed) arrival threshold (negative value means it is relative)
-  if( Par.sshArrivalThreshold < 0 ) Par.sshArrivalThreshold = absuzmax * fabs(Par.sshArrivalThreshold);
+  if( Par.sshArrivalThreshold < 0 )
+    Par.sshArrivalThreshold = absuzmax * fabs(Par.sshArrivalThreshold);
 
   // transfer uplift onto tsunami grid and define deformed area for acceleration
   Imin = NLon; Imax = 1; Jmin = NLat; Jmax = 1;
@@ -199,7 +204,7 @@ int ewSource()
       else
         dz = Node(idx(j,i), iH) = 0.;
 
-      if( fabs(dz) > Par.sshClipThreshold ) {
+      if (fabs(dz) > Par.sshClipThreshold) {
         Imin = My_min( Imin, i );
         Imax = My_max( Imax, i );
         Jmin = My_min( Jmin, j );
