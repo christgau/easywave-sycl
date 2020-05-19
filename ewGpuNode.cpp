@@ -234,8 +234,8 @@ int CGpuNode::run() {
 	int xBlocks = ceil((float)NJ / (float)xThreads);
 	int yBlocks = ceil((float)NI / (float)yThreads);
 
-	sycl::range<3> threads(xThreads, yThreads, 1);
-	sycl::range<3> blocks(xBlocks, yBlocks, 1);
+	sycl::range<2> threads(xThreads, yThreads);
+	sycl::range<2> blocks(xBlocks, yBlocks);
 
 	int nBlocks = ceil((float)std::max(dp.nI, dp.nJ) / (float)nThreads);
 
@@ -247,10 +247,10 @@ int CGpuNode::run() {
 		auto data_ct0 = data;
 
 		cgh.parallel_for(
-			sycl::nd_range<3>(
-				sycl::range<3>(dpct_global_range.get(2), dpct_global_range.get(1), dpct_global_range.get(0)),
-	            sycl::range<3>(threads.get(2), threads.get(1), threads.get(0))),
-			[=](sycl::nd_item<3> item_ct1) {
+			sycl::nd_range<2>(
+				sycl::range<2>(dpct_global_range.get(0), dpct_global_range.get(1)),
+	            sycl::range<2>(threads.get(0), threads.get(1))),
+			[=](sycl::nd_item<2> item_ct1) {
 				runWaveUpdateKernel(data_ct0, item_ct1);
 			});
 	});
@@ -261,10 +261,10 @@ int CGpuNode::run() {
 		auto data_ct0 = data;
 
 		cgh.parallel_for(
-			sycl::nd_range<3>(
-				sycl::range<3>(1, 1, nBlocks) * sycl::range<3>(1, 1, nThreads),
-				sycl::range<3>(1, 1, nThreads)),
-			[=](sycl::nd_item<3> item_ct1) {
+			sycl::nd_range<1>(
+				sycl::range<1>(nBlocks) * sycl::range<1>(nThreads),
+				sycl::range<1>(nThreads)),
+			[=](sycl::nd_item<1> item_ct1) {
 				runWaveBoundaryKernel(data_ct0, item_ct1);
 			});
 	});
@@ -276,10 +276,10 @@ int CGpuNode::run() {
 		auto data_ct0 = data;
 
 		cgh.parallel_for(
-			sycl::nd_range<3>(
-				sycl::range<3>(dpct_global_range.get(2), dpct_global_range.get(1), dpct_global_range.get(0)),
-	            sycl::range<3>(threads.get(2), threads.get(1), threads.get(0))),
-		    [=](sycl::nd_item<3> item_ct1) {
+			sycl::nd_range<2>(
+				sycl::range<2>(dpct_global_range.get(0), dpct_global_range.get(1)),
+	            sycl::range<2>(threads.get(0), threads.get(1))),
+		    [=](sycl::nd_item<2> item_ct1) {
 			   runFluxUpdateKernel(data_ct0, item_ct1);
 		    });
 	});
@@ -289,10 +289,10 @@ int CGpuNode::run() {
 	dpct::get_default_queue().submit([&](sycl::handler &cgh) {
 	    auto data_ct0 = data;
 
-		cgh.parallel_for(sycl::nd_range<3>(
-				sycl::range<3>(1, 1, nBlocks) * sycl::range<3>(1, 1, nThreads),
-				sycl::range<3>(1, 1, nThreads)),
-			[=](sycl::nd_item<3> item_ct1) {
+		cgh.parallel_for(sycl::nd_range<1>(
+				sycl::range<1>(nBlocks) * sycl::range<1>(nThreads),
+				sycl::range<1>(nThreads)),
+			[=](sycl::nd_item<1> item_ct1) {
 				runFluxBoundaryKernel(data_ct0, item_ct1);
 			});
 	});
@@ -303,10 +303,10 @@ int CGpuNode::run() {
 	dpct::get_default_queue().submit([&](sycl::handler &cgh) {
 		auto data_ct0 = data;
 
-		cgh.parallel_for(sycl::nd_range<3>(
-				sycl::range<3>(1, 1, nBlocks) * sycl::range<3>(1, 1, nThreads),
-				sycl::range<3>(1, 1, nThreads)),
-			[=](sycl::nd_item<3> item_ct1) {
+		cgh.parallel_for(sycl::nd_range<1>(
+				sycl::range<1>(nBlocks) * sycl::range<1>(nThreads),
+				sycl::range<1>(nThreads)),
+			[=](sycl::nd_item<1> item_ct1) {
 				runGridExtendKernel(data_ct0, item_ct1);
 			});
 	});

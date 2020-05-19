@@ -35,12 +35,12 @@
 #include "ewGpuNode.hpp"
 #include "ewCudaKernels.hpp"
 
-SYCL_EXTERNAL void runWaveUpdateKernel(KernelData data, sycl::nd_item<3> item_ct1)
+SYCL_EXTERNAL void runWaveUpdateKernel(KernelData data, sycl::nd_item<2> item_ct1)
 {
   Params& dp = data.params;
 
   int i = item_ct1.get_group(1) * item_ct1.get_local_range().get(1) + item_ct1.get_local_id(1) + dp.iMin;
-  int j = item_ct1.get_group(2) * item_ct1.get_local_range().get(2) + item_ct1.get_local_id(2) + dp.jMin;
+  int j = item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + dp.jMin;
   int ij = data.idx(i,j);
   float absH;
 
@@ -64,12 +64,12 @@ SYCL_EXTERNAL void runWaveUpdateKernel(KernelData data, sycl::nd_item<3> item_ct
   }
 }
 
-SYCL_EXTERNAL void runFluxUpdateKernel(KernelData data, sycl::nd_item<3> item_ct1)
+SYCL_EXTERNAL void runFluxUpdateKernel(KernelData data, sycl::nd_item<2> item_ct1)
 {
   Params& dp = data.params;
 
   int i = item_ct1.get_group(1) * item_ct1.get_local_range().get(1) + item_ct1.get_local_id(1) + dp.iMin;
-  int j = item_ct1.get_group(2) * item_ct1.get_local_range().get(2) + item_ct1.get_local_id(2) + dp.jMin;
+  int j = item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + dp.jMin;
   int ij = data.idx(i,j);
 
   if( i <= dp.iMax && j <= dp.jMax && data.d[ij] != 0 ) {
@@ -87,12 +87,12 @@ SYCL_EXTERNAL void runFluxUpdateKernel(KernelData data, sycl::nd_item<3> item_ct
 
 #define SQR(x)   ((x) * (x))
 
-SYCL_EXTERNAL void runWaveBoundaryKernel(KernelData data, sycl::nd_item<3> item_ct1)
+SYCL_EXTERNAL void runWaveBoundaryKernel(KernelData data, sycl::nd_item<1> item_ct1)
 {
     KernelData& dt = data;
     Params& dp = data.params;
 
-    int id = item_ct1.get_group(2) * item_ct1.get_local_range().get(2) + item_ct1.get_local_id(2) + 2;
+    int id = item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + 2;
     int ij;
 
 	if( dp.jMin <= 2 && id <= dp.nI-1 ) {
@@ -140,12 +140,12 @@ SYCL_EXTERNAL void runWaveBoundaryKernel(KernelData data, sycl::nd_item<3> item_
 	}
 }
 
-SYCL_EXTERNAL void runFluxBoundaryKernel(KernelData data, sycl::nd_item<3> item_ct1)
+SYCL_EXTERNAL void runFluxBoundaryKernel(KernelData data, sycl::nd_item<1> item_ct1)
 {
     KernelData& dt = data;
     Params& dp = data.params;
 
-    int id = item_ct1.get_group(2) * item_ct1.get_local_range().get(2) + item_ct1.get_local_id(2) + 1;
+    int id = item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + 1;
     int ij;
 
 	if( dp.jMin <= 2 && id <= dp.nI-1 ) {
@@ -181,11 +181,11 @@ SYCL_EXTERNAL void runFluxBoundaryKernel(KernelData data, sycl::nd_item<3> item_
 
 #define atomicAdd dpct::atomic_fetch_add
 
-SYCL_EXTERNAL void runGridExtendKernel(KernelData data, sycl::nd_item<3> item_ct1)
+SYCL_EXTERNAL void runGridExtendKernel(KernelData data, sycl::nd_item<1> item_ct1)
 {
     Params& dp = data.params;
 
-    int id = item_ct1.get_group(2) * item_ct1.get_local_range().get(2) + item_ct1.get_local_id(2) + 1;
+    int id = item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + 1;
 
 #if (DPCPP_COMPATIBILITY_TEMP >= 130)
 
