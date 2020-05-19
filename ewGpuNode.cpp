@@ -225,7 +225,7 @@ int CGpuNode::run() {
 
 	Params& dp = data.params;
 
-	int nThreads = 256;
+	int nThreads = 128;
 	int xThreads = 32;
 	int yThreads = nThreads / xThreads;
 
