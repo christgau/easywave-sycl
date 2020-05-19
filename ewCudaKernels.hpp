@@ -35,15 +35,10 @@
 #ifndef EW_KERNELS_H
 #define EW_KERNELS_H
 
-SYCL_EXTERNAL void runWaveUpdateKernel(KernelData data,
-                                       sycl::nd_item<3> item_ct1);
-SYCL_EXTERNAL void runWaveBoundaryKernel(KernelData data,
-                                         sycl::nd_item<3> item_ct1);
-SYCL_EXTERNAL void runFluxUpdateKernel(KernelData data,
-                                       sycl::nd_item<3> item_ct1);
-SYCL_EXTERNAL void runFluxBoundaryKernel(KernelData data,
-                                         sycl::nd_item<3> item_ct1);
-SYCL_EXTERNAL void runGridExtendKernel(KernelData data,
-                                       sycl::nd_item<3> item_ct1);
+SYCL_EXTERNAL void runWaveUpdateKernel(KernelData data, sycl::nd_item<3> item_ct1);
+SYCL_EXTERNAL void runWaveBoundaryKernel(KernelData data, sycl::nd_item<3> item_ct1);
+SYCL_EXTERNAL void runFluxUpdateKernel(KernelData data, sycl::nd_item<3> item_ct1);
+SYCL_EXTERNAL void runFluxBoundaryKernel(KernelData data, sycl::nd_item<3> item_ct1);
+SYCL_EXTERNAL void runGridExtendKernel(KernelData data, sycl::nd_item<3> item_ct1);
 
 #endif /* EW_KERNELS_H */
