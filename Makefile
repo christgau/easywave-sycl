@@ -1,6 +1,6 @@
 CXX=dpcpp
-CXXFLAGS=-O0 -g
-#-march=native -mtune=native -Rpass=loop-vectorize
+#CXXFLAGS=-O0 -g -DTIMING
+CXXFLAGS=-O3 -march=native -mtune=native -ftree-vectorize -ffast-math -Rpass=loop-vectorize -cl-fast-relaxed-math -fvectorize
 LDLIBS=-lm
 
 SOURCES=\
