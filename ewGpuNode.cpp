@@ -77,7 +77,6 @@ int CGpuNode::mallocMem() {
 	/* 2-dim */
 	/* FIXME: move global variables into data structure */
 	dpct::dpct_malloc(&data.d, &pitch, nJ_aligned * sizeof(float), dp.nI);
-	dpct::dpct_malloc(&data.d, &pitch, nJ_aligned * sizeof(float), dp.nI);
 	dpct::dpct_malloc(&data.h, &pitch, nJ_aligned * sizeof(float), dp.nI);
 	dpct::dpct_malloc(&(data.hMax), &pitch, nJ_aligned * sizeof(float), dp.nI);
 	dpct::dpct_malloc(&(data.fM), &pitch, nJ_aligned * sizeof(float), dp.nI);
