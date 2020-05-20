@@ -221,6 +221,12 @@ int CGpuNode::freeMem() {
 	return 0;
 }
 
+#ifdef TIMING
+#define SYNC      do { dpct::get_current_device().queues_wait_and_throw() } while (0)
+#else
+#define SYNC
+#endif
+
 int CGpuNode::run() {
 
 	Params& dp = data.params;
@@ -254,6 +260,7 @@ int CGpuNode::run() {
 				runWaveUpdateKernel(data_ct0, item_ct1);
 			});
 	});
+	SYNC;
 	evtEnd[0] = std::chrono::high_resolution_clock::now();
 
 	evtStart[1] = std::chrono::high_resolution_clock::now();
@@ -268,6 +275,7 @@ int CGpuNode::run() {
 				runWaveBoundaryKernel(data_ct0, item_ct1);
 			});
 	});
+	SYNC;
 	evtEnd[1] = std::chrono::high_resolution_clock::now();
 
 	evtStart[2] = std::chrono::high_resolution_clock::now();
@@ -283,6 +291,7 @@ int CGpuNode::run() {
 			   runFluxUpdateKernel(data_ct0, item_ct1);
 		    });
 	});
+	SYNC;
 	evtEnd[2] = std::chrono::high_resolution_clock::now();
 
 	evtStart[3] = std::chrono::high_resolution_clock::now();
@@ -296,6 +305,7 @@ int CGpuNode::run() {
 				runFluxBoundaryKernel(data_ct0, item_ct1);
 			});
 	});
+	SYNC;
 	evtEnd[3] = std::chrono::high_resolution_clock::now();
 
 	evtStart[4] = std::chrono::high_resolution_clock::now();
@@ -310,6 +320,7 @@ int CGpuNode::run() {
 				runGridExtendKernel(data_ct0, item_ct1);
 			});
 	});
+	SYNC;
 	evtEnd[4] = std::chrono::high_resolution_clock::now();
 
 	sycl::int4 MinMax;
