@@ -49,7 +49,7 @@ SYCL_EXTERNAL void runWaveUpdateKernel(KernelData data, sycl::nd_item<2> item_ct
 
     float hh = data.h[ij] - data.cR1[ij] * ( data.fM[ij] - data.fM[data.le(ij)] + data.fN[ij] * data.cR6[j] - data.fN[data.dn(ij)]*data.cR6[j-1] );
 
-    absH = sycl::fabs((double)hh);
+    absH = fabsf(hh);
 
     if( absH < dp.sshZeroThreshold ) {
 	  hh = 0.f;
