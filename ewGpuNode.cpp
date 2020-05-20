@@ -247,15 +247,16 @@ int CGpuNode::run() {
 
 	dp.mTime = Par.time;
 
+	auto data_ct0 = data;
+	auto dpct_global_range = blocks * threads;
+
 	evtStart[0] = std::chrono::high_resolution_clock::now();
 	dpct::get_default_queue().submit([&](sycl::handler &cgh) {
-		auto dpct_global_range = blocks * threads;
-		auto data_ct0 = data;
 
 		cgh.parallel_for(
 			sycl::nd_range<2>(
 				sycl::range<2>(dpct_global_range.get(0), dpct_global_range.get(1)),
-	            sycl::range<2>(threads.get(0), threads.get(1))),
+				sycl::range<2>(threads.get(0), threads.get(1))),
 			[=](sycl::nd_item<2> item_ct1) {
 				runWaveUpdateKernel(data_ct0, item_ct1);
 			});
@@ -265,7 +266,6 @@ int CGpuNode::run() {
 
 	evtStart[1] = std::chrono::high_resolution_clock::now();
 	dpct::get_default_queue().submit([&](sycl::handler &cgh) {
-		auto data_ct0 = data;
 
 		cgh.parallel_for(
 			sycl::nd_range<1>(
@@ -280,23 +280,20 @@ int CGpuNode::run() {
 
 	evtStart[2] = std::chrono::high_resolution_clock::now();
 	dpct::get_default_queue().submit([&](sycl::handler &cgh) {
-		auto dpct_global_range = blocks * threads;
-		auto data_ct0 = data;
 
 		cgh.parallel_for(
 			sycl::nd_range<2>(
 				sycl::range<2>(dpct_global_range.get(0), dpct_global_range.get(1)),
-	            sycl::range<2>(threads.get(0), threads.get(1))),
-		    [=](sycl::nd_item<2> item_ct1) {
-			   runFluxUpdateKernel(data_ct0, item_ct1);
-		    });
+				sycl::range<2>(threads.get(0), threads.get(1))),
+			[=](sycl::nd_item<2> item_ct1) {
+				runFluxUpdateKernel(data_ct0, item_ct1);
+			});
 	});
 	SYNC;
 	evtEnd[2] = std::chrono::high_resolution_clock::now();
 
 	evtStart[3] = std::chrono::high_resolution_clock::now();
 	dpct::get_default_queue().submit([&](sycl::handler &cgh) {
-	    auto data_ct0 = data;
 
 		cgh.parallel_for(sycl::nd_range<1>(
 				sycl::range<1>(nBlocks) * sycl::range<1>(nThreads),
@@ -311,7 +308,6 @@ int CGpuNode::run() {
 	evtStart[4] = std::chrono::high_resolution_clock::now();
 	dpct::get_default_queue().memset(data.g_MinMax, 0, sizeof(sycl::int4)).wait();
 	dpct::get_default_queue().submit([&](sycl::handler &cgh) {
-		auto data_ct0 = data;
 
 		cgh.parallel_for(sycl::nd_range<1>(
 				sycl::range<1>(nBlocks) * sycl::range<1>(nThreads),
