@@ -39,8 +39,8 @@ SYCL_EXTERNAL void runWaveUpdateKernel(KernelData data, sycl::nd_item<2> item_ct
 {
   Params& dp = data.params;
 
-  int i = item_ct1.get_group(1) * item_ct1.get_local_range().get(1) + item_ct1.get_local_id(1) + dp.iMin;
-  int j = item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + dp.jMin;
+  int i = item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + dp.iMin;
+  int j = item_ct1.get_group(1) * item_ct1.get_local_range().get(1) + item_ct1.get_local_id(1) + dp.jMin;
   int ij = data.idx(i,j);
   float absH;
 
@@ -68,8 +68,8 @@ SYCL_EXTERNAL void runFluxUpdateKernel(KernelData data, sycl::nd_item<2> item_ct
 {
   Params& dp = data.params;
 
-  int i = item_ct1.get_group(1) * item_ct1.get_local_range().get(1) + item_ct1.get_local_id(1) + dp.iMin;
-  int j = item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + dp.jMin;
+  int i = item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + dp.iMin;
+  int j = item_ct1.get_group(1) * item_ct1.get_local_range().get(1) + item_ct1.get_local_id(1) + dp.jMin;
   int ij = data.idx(i,j);
 
   if( i <= dp.iMax && j <= dp.jMax && data.d[ij] != 0 ) {

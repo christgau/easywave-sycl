@@ -254,8 +254,8 @@ int CGpuNode::run() {
 
 		cgh.parallel_for(
 			sycl::nd_range<2>(
-				sycl::range<2>(dpct_global_range.get(0), dpct_global_range.get(1)),
-				sycl::range<2>(threads.get(0), threads.get(1))),
+				sycl::range<2>(dpct_global_range.get(1), dpct_global_range.get(0)),
+				sycl::range<2>(threads.get(1), threads.get(0))),
 			[=](sycl::nd_item<2> item_ct1) {
 				runWaveUpdateKernel(data_ct0, item_ct1);
 			});
@@ -282,8 +282,8 @@ int CGpuNode::run() {
 
 		cgh.parallel_for(
 			sycl::nd_range<2>(
-				sycl::range<2>(dpct_global_range.get(0), dpct_global_range.get(1)),
-				sycl::range<2>(threads.get(0), threads.get(1))),
+				sycl::range<2>(dpct_global_range.get(1), dpct_global_range.get(0)),
+				sycl::range<2>(threads.get(1), threads.get(0))),
 			[=](sycl::nd_item<2> item_ct1) {
 				runFluxUpdateKernel(data_ct0, item_ct1);
 			});
