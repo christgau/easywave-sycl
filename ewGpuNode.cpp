@@ -221,7 +221,7 @@ int CGpuNode::freeMem() {
 }
 
 #ifdef TIMING
-#define SYNC      do { dpct::get_current_device().queues_wait_and_throw() } while (0)
+#define SYNC      do { dpct::get_current_device().queues_wait_and_throw(); } while (0)
 #else
 #define SYNC
 #endif
