@@ -1,12 +1,13 @@
-CXX=clang++
-#CXXFLAGS=-O0 -g -DTIMING
-CXXFLAGS=-O3 -march=native -mtune=native -ftree-vectorize -ffast-math -Rpass=loop-vectorize -cl-fast-relaxed-math -fvectorize \
+#CXX=clang++
+CXXFLAGS=-O3 -g
+#CXXFLAGS=-O3 -march=native -mtune=native -ftree-vectorize -ffast-math -Rpass=loop-vectorize -cl-fast-relaxed-math -fvectorize \
 	--gcc-toolchain=$(GCC_ROOT) \
 	-fsycl \
 	-fsycl-unnamed-lambda \
 	-fsycl-targets=nvptx64-nvidia-cuda-sycldevice \
 	-nocudalib \
 	-I$(HOME)/opt/local/intel/oneapi/dpct/latest/include
+CXX=dpcpp
 LDLIBS=-lm
 
 SOURCES=\

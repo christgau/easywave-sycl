@@ -109,12 +109,24 @@ protected:
 	/* specifies if data was already copied in the current calculation step */
 	bool copied;
 
-	std::chrono::high_resolution_clock::time_point evtStart[5];
-	std::chrono::high_resolution_clock::time_point evtEnd[5];
-        float dur[5];
+	static constexpr int NUM_KERNELS = 6;
+	static constexpr int NUM_TIMED_KERNELS = 5;
+
+	static constexpr int KERNEL_WAVE_UPDATE = 0;
+	static constexpr int KERNEL_WAVE_BOUND = 1;
+	static constexpr int KERNEL_FLUX_UPDATE = 2;
+	static constexpr int KERNEL_FLUX_BOUND = 3;
+	static constexpr int KERNEL_EXTEND = 4;
+	/* extra "kernel" which get an event for synchronization */
+	static constexpr int KERNEL_MEMSET = 5;
+
+	bool have_profiling;
+	std::vector<cl::sycl::event> *kernel_events;
+	cl::sycl::queue *queue;
 
 public:
 	CGpuNode();
+	~CGpuNode();
 	int mallocMem();
 	int copyToGPU();
 	int copyFromGPU();

@@ -17,12 +17,12 @@
  * results in scientific communications) commit to make this modified source
  * code available in a repository that is easily and freely accessible for a
  * duration of five years after the communication of the obtained results.
- * 
+ *
  * You may not use this work except in compliance with the Licence.
- * 
+ *
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/software/page/eupl
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -136,8 +136,8 @@ int main( int argc, char **argv )
 
     if( Par.outProgress ) {
       if( lastProgress >= Par.outProgress ) {
-        printf( "Model time = %s,   elapsed: %ld msec\n", utlTimeSplitString(Par.time), elapsed );
-        Log.print( "Model time = %s,   elapsed: %ld msec", utlTimeSplitString(Par.time), elapsed );
+        printf( "Model time = %s,   elapsed: %ld msec\tdomain (%d, %d)-(%d, %d)\n", utlTimeSplitString(Par.time), elapsed, Jmin, Imin, Jmax, Imax );
+        Log.print( "Model time = %s,   elapsed: %ld msec\tdomain (%d, %d)-(%d, %d)\n", utlTimeSplitString(Par.time), elapsed, Jmin, Imin, Jmax, Imax );
         lastProgress = 0;
       }
     }

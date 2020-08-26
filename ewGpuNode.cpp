@@ -45,17 +45,44 @@ CGpuNode::CGpuNode() {
 	pitch = 0;
 	copied = true;
 
-    char* dev_spec = getenv("EW_CL_DEVICE");
-    if (dev_spec) {
-        dpct::dev_mgr::instance().select_device(atoi(dev_spec));
-    }
+	char* dev_spec = getenv("EW_CL_DEVICE");
+	if (dev_spec) {
+		dpct::dev_mgr::instance().select_device(atoi(dev_spec));
+	}
 
-    dpct::device_info di;
-    dpct::dev_mgr::instance().current_device().get_device_info(di);
-    std::cout << "running in accellerated mode using " << di.get_name() << std::endl;
-    dpct::dev_mgr::instance().current_device().queues_wait_and_throw();
+	dpct::device_info di;
+	auto &dev = dpct::dev_mgr::instance().current_device();
+	dev.get_device_info(di);
+	std::cout << "running in accellerated mode using " << di.get_name() << std::endl;
+	std::cout << "Profling supported: " << dev.get_info<cl::sycl::info::device::queue_profiling>() << std::endl;
 
-    for( int i = 0; i < 5; i++ ) { dur[i] = 0.0; }
+	auto kernels = dev.get_info<cl::sycl::info::device::built_in_kernels>();
+	std::cout << "Built-in kernels: " << (kernels.size() ? std::to_string(kernels.size()) : "None.") << std::endl;
+	for (const auto &k: kernels) {
+		std::cout << " - " << k << std::endl;
+	}
+
+	/* use new here, otherwise you earn a crash in glibc memory allocation */
+	kernel_events = new std::vector<cl::sycl::event>(NUM_KERNELS);
+
+	for( int i = 0; i < NUM_TIMED_KERNELS; i++ ) { dur[i] = 0.0; }
+
+	have_profiling = dev.get_info<cl::sycl::info::device::queue_profiling>() && Par.verbose;
+	if (have_profiling) {
+		auto enable_list = cl::sycl::property_list{cl::sycl::property::queue::enable_profiling()};
+		queue = new cl::sycl::queue(dev, enable_list);
+	} else {
+		queue = &dpct::get_default_queue();
+	}
+}
+
+CGpuNode::~CGpuNode()
+{
+	/* not really safe, but try to free a possibly manually created queue */
+	if (*queue != dpct::get_default_queue()) {
+		delete queue;
+	}
+	delete kernel_events;
 }
 
 int CGpuNode::mallocMem() {
@@ -208,23 +235,10 @@ int CGpuNode::freeMem() {
 
 	sycl::free(data.g_MinMax, dpct::get_default_context());
 
-	float total_dur = 0.f;
-	for( int j = 0; j < 5; j++ ) {
-		printf_v("Duration %u: %.3f\n", j, dur[j]);
-		total_dur += dur[j];
-	}
-	printf_v("Duration total: %.3f\n",total_dur);
-
 	CArrayNode::freeMem();
 
 	return 0;
 }
-
-#ifdef TIMING
-#define SYNC      do { dpct::get_current_device().queues_wait_and_throw(); } while (0)
-#else
-#define SYNC
-#endif
 
 int CGpuNode::run() {
 
@@ -249,9 +263,7 @@ int CGpuNode::run() {
 	auto data_ct0 = data;
 	auto dpct_global_range = blocks * threads;
 
-	evtStart[0] = std::chrono::high_resolution_clock::now();
-	dpct::get_default_queue().submit([&](sycl::handler &cgh) {
-
+	kernel_events->at(KERNEL_WAVE_UPDATE) = queue->submit([&](sycl::handler &cgh) {
 		cgh.parallel_for(
 			sycl::nd_range<2>(
 				sycl::range<2>(dpct_global_range.get(1), dpct_global_range.get(0)),
@@ -260,12 +272,9 @@ int CGpuNode::run() {
 				runWaveUpdateKernel(data_ct0, item_ct1);
 			});
 	});
-	SYNC;
-	evtEnd[0] = std::chrono::high_resolution_clock::now();
 
-	evtStart[1] = std::chrono::high_resolution_clock::now();
-	dpct::get_default_queue().submit([&](sycl::handler &cgh) {
-
+	kernel_events->at(KERNEL_WAVE_BOUND) = queue->submit([&](sycl::handler &cgh) {
+		cgh.depends_on({ kernel_events->at(KERNEL_WAVE_UPDATE) });
 		cgh.parallel_for(
 			sycl::nd_range<1>(
 				sycl::range<1>(nBlocks) * sycl::range<1>(nThreads),
@@ -274,12 +283,9 @@ int CGpuNode::run() {
 				runWaveBoundaryKernel(data_ct0, item_ct1);
 			});
 	});
-	SYNC;
-	evtEnd[1] = std::chrono::high_resolution_clock::now();
 
-	evtStart[2] = std::chrono::high_resolution_clock::now();
-	dpct::get_default_queue().submit([&](sycl::handler &cgh) {
-
+	kernel_events->at(KERNEL_FLUX_UPDATE) = queue->submit([&](sycl::handler &cgh) {
+		cgh.depends_on({ kernel_events->at(KERNEL_WAVE_BOUND) });
 		cgh.parallel_for(
 			sycl::nd_range<2>(
 				sycl::range<2>(dpct_global_range.get(1), dpct_global_range.get(0)),
@@ -288,12 +294,9 @@ int CGpuNode::run() {
 				runFluxUpdateKernel(data_ct0, item_ct1);
 			});
 	});
-	SYNC;
-	evtEnd[2] = std::chrono::high_resolution_clock::now();
 
-	evtStart[3] = std::chrono::high_resolution_clock::now();
-	dpct::get_default_queue().submit([&](sycl::handler &cgh) {
-
+	kernel_events->at(KERNEL_FLUX_BOUND) = queue->submit([&](sycl::handler &cgh) {
+		cgh.depends_on({ kernel_events->at(KERNEL_FLUX_UPDATE) });
 		cgh.parallel_for(sycl::nd_range<1>(
 				sycl::range<1>(nBlocks) * sycl::range<1>(nThreads),
 				sycl::range<1>(nThreads)),
@@ -301,13 +304,11 @@ int CGpuNode::run() {
 				runFluxBoundaryKernel(data_ct0, item_ct1);
 			});
 	});
-	SYNC;
-	evtEnd[3] = std::chrono::high_resolution_clock::now();
 
-	evtStart[4] = std::chrono::high_resolution_clock::now();
-	dpct::get_default_queue().memset(data.g_MinMax, 0, sizeof(sycl::int4)).wait();
-	dpct::get_default_queue().submit([&](sycl::handler &cgh) {
+	kernel_events->at(KERNEL_MEMSET) = queue->memset(data.g_MinMax, 0, sizeof(sycl::int4));
 
+	kernel_events->at(KERNEL_EXTEND) = queue->submit([&](sycl::handler &cgh) {
+		cgh.depends_on({ kernel_events->at(KERNEL_FLUX_BOUND) });
 		cgh.parallel_for(sycl::nd_range<1>(
 				sycl::range<1>(nBlocks) * sycl::range<1>(nThreads),
 				sycl::range<1>(nThreads)),
@@ -315,20 +316,19 @@ int CGpuNode::run() {
 				runGridExtendKernel(data_ct0, item_ct1);
 			});
 	});
-	SYNC;
-	evtEnd[4] = std::chrono::high_resolution_clock::now();
 
 	sycl::int4 MinMax;
-	dpct::get_default_queue().memcpy(&MinMax, data.g_MinMax, sizeof(sycl::int4)).wait();
-	dpct::get_current_device().queues_wait_and_throw();
+	kernel_events->at(KERNEL_EXTEND).wait();
+	queue->memcpy(&MinMax, data.g_MinMax, sizeof(sycl::int4)).wait();
 
 	if (static_cast<int>(MinMax.x())) Imin = dp.iMin = std::max(dp.iMin - 1, 2);
 	if (static_cast<int>(MinMax.y())) Imax = dp.iMax = std::min(dp.iMax + 1, dp.nI - 1);
 	if (static_cast<int>(MinMax.z())) Jmin = dp.jMin = std::max(dp.jMin - 32, 2);
 	if (static_cast<int>(MinMax.w())) Jmax = dp.jMax = std::min(dp.jMax + 1, dp.nJ - 1);
 
-	for( int j = 0; j < 5; j++ ) {
-		dur[j] += std::chrono::duration<float, std::milli>(evtEnd[j] - evtStart[j]).count();
+	for( int j = 0; have_profiling && j < NUM_TIMED_KERNELS; j++ ) {
+		dur[j] += (kernel_events->at(j).get_profiling_info<cl::sycl::info::event_profiling::command_end>()
+			- kernel_events->at(j).get_profiling_info<cl::sycl::info::event_profiling::command_submit>()) / 1.0E+6;
 	}
 
 	/* data has changed now -> copy becomes necessary */
