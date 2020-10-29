@@ -38,8 +38,6 @@
 
 #include <algorithm>
 
-#define dpct_malloc(ptr, pitch, size_x, size_y)  dpct_malloc((void**) (ptr), pitch, size_x, size_y)
-
 CGpuNode::CGpuNode() {
 
 	pitch = 0;
@@ -103,15 +101,15 @@ int CGpuNode::mallocMem() {
 
 	/* 2-dim */
 	/* FIXME: move global variables into data structure */
-	dpct::dpct_malloc(&data.d, &pitch, nJ_aligned * sizeof(float), dp.nI);
-	dpct::dpct_malloc(&data.h, &pitch, nJ_aligned * sizeof(float), dp.nI);
-	dpct::dpct_malloc(&(data.hMax), &pitch, nJ_aligned * sizeof(float), dp.nI);
-	dpct::dpct_malloc(&(data.fM), &pitch, nJ_aligned * sizeof(float), dp.nI);
-	dpct::dpct_malloc(&(data.fN), &pitch, nJ_aligned * sizeof(float), dp.nI);
-	dpct::dpct_malloc(&(data.cR1), &pitch, nJ_aligned * sizeof(float), dp.nI);
-	dpct::dpct_malloc(&(data.cR2), &pitch, nJ_aligned * sizeof(float), dp.nI);
-	dpct::dpct_malloc(&(data.cR4), &pitch, nJ_aligned * sizeof(float), dp.nI);
-	dpct::dpct_malloc(&(data.tArr), &pitch, nJ_aligned * sizeof(float), dp.nI);
+	data.d = (float*) dpct::dpct_malloc(pitch, nJ_aligned * sizeof(float), dp.nI);
+	data.h = (float*) dpct::dpct_malloc(pitch, nJ_aligned * sizeof(float), dp.nI);
+	data.hMax = (float*) dpct::dpct_malloc(pitch, nJ_aligned * sizeof(float), dp.nI);
+	data.fM = (float*) dpct::dpct_malloc(pitch, nJ_aligned * sizeof(float), dp.nI);
+	data.fN = (float*) dpct::dpct_malloc(pitch, nJ_aligned * sizeof(float), dp.nI);
+	data.cR1 = (float*) dpct::dpct_malloc(pitch, nJ_aligned * sizeof(float), dp.nI);
+	data.cR2 = (float*) dpct::dpct_malloc(pitch, nJ_aligned * sizeof(float), dp.nI);
+	data.cR4 = (float*) dpct::dpct_malloc(pitch, nJ_aligned * sizeof(float), dp.nI);
+	data.tArr = (float*) dpct::dpct_malloc(pitch, nJ_aligned * sizeof(float), dp.nI);
     /* TODO: cR3, cR5 for coriolis */
 
 	/* 1-dim */

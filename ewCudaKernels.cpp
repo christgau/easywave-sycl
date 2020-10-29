@@ -187,7 +187,7 @@ SYCL_EXTERNAL void runGridExtendKernel(KernelData data, sycl::nd_item<1> item_ct
 
     int id = item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + 1;
 
-#if (DPCPP_COMPATIBILITY_TEMP >= 130)
+#ifndef USE_LOOP_EXTEND
 
 	if( id >= dp.jMin && id <= dp.jMax ) {
 
