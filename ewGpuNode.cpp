@@ -238,80 +238,74 @@ int CGpuNode::freeMem() {
 	return 0;
 }
 
+#define INT_CEIL(x, n) ((((x) + (n) - 1) / (n)) * (n))
+
 int CGpuNode::run() {
 
 	Params& dp = data.params;
 
-	int nThreads = 128;
-	int xThreads = 32;
-	int yThreads = nThreads / xThreads;
-
 	int NJ = dp.jMax - dp.jMin + 1;
 	int NI = dp.iMax - dp.iMin + 1;
-	int xBlocks = ceil((float)NJ / (float)xThreads);
-	int yBlocks = ceil((float)NI / (float)yThreads);
 
-	sycl::range<2> threads(xThreads, yThreads);
-	sycl::range<2> blocks(xBlocks, yBlocks);
+	const cl::sycl::device dev = queue->get_device();
+	size_t max_wg_size = dev.get_info<cl::sycl::info::device::max_work_group_size>();
 
-	int nBlocks = ceil((float)std::max(dp.nI, dp.nJ) / (float)nThreads);
+	/* Using max wg size or a preferred wg_size would be better here, but causes runtime errors (CL_OUT_OF_RESOURCES) */
+	sycl::range<1> boundary_workgroup_size(max_wg_size); /* div by 7 works as well for CPU, but not by 6 */
+	sycl::range<1> boundary_size(INT_CEIL(std::max(dp.nI, dp.nJ), boundary_workgroup_size[0]));
+
+	/* Originally we had n = 128 threads, 32 for x and 128/x = 4 threads, hardcoded. So do this again here, to avoid runtime errors */
+	sycl::range<2> compute_wnd_workgroup_size(32, 4);
+	sycl::range<2> compute_wnd_size(
+		INT_CEIL(NJ, compute_wnd_workgroup_size[0]),
+		INT_CEIL(NI, compute_wnd_workgroup_size[1])
+	);
 
 	dp.mTime = Par.time;
 
-	auto data_ct0 = data;
-	auto dpct_global_range = blocks * threads;
+	auto kernel_data = data;
 
 	kernel_events->at(KERNEL_WAVE_UPDATE) = queue->submit([&](sycl::handler &cgh) {
 		cgh.parallel_for(
-			sycl::nd_range<2>(
-				sycl::range<2>(dpct_global_range.get(1), dpct_global_range.get(0)),
-				sycl::range<2>(threads.get(1), threads.get(0))),
-			[=](sycl::nd_item<2> item_ct1) {
-				runWaveUpdateKernel(data_ct0, item_ct1);
+			sycl::nd_range<2>(compute_wnd_size, compute_wnd_workgroup_size),
+			[=](sycl::nd_item<2> item) {
+				runWaveUpdateKernel(kernel_data, item);
 			});
 	});
 
 	kernel_events->at(KERNEL_WAVE_BOUND) = queue->submit([&](sycl::handler &cgh) {
 		cgh.depends_on({ kernel_events->at(KERNEL_WAVE_UPDATE) });
 		cgh.parallel_for(
-			sycl::nd_range<1>(
-				sycl::range<1>(nBlocks) * sycl::range<1>(nThreads),
-				sycl::range<1>(nThreads)),
-			[=](sycl::nd_item<1> item_ct1) {
-				runWaveBoundaryKernel(data_ct0, item_ct1);
+			sycl::nd_range<1>(boundary_size, boundary_workgroup_size),
+			[=](sycl::nd_item<1> item) {
+				runWaveBoundaryKernel(kernel_data, item);
 			});
 	});
 
 	kernel_events->at(KERNEL_FLUX_UPDATE) = queue->submit([&](sycl::handler &cgh) {
 		cgh.depends_on({ kernel_events->at(KERNEL_WAVE_BOUND) });
 		cgh.parallel_for(
-			sycl::nd_range<2>(
-				sycl::range<2>(dpct_global_range.get(1), dpct_global_range.get(0)),
-				sycl::range<2>(threads.get(1), threads.get(0))),
-			[=](sycl::nd_item<2> item_ct1) {
-				runFluxUpdateKernel(data_ct0, item_ct1);
+			sycl::nd_range<2>(compute_wnd_size, compute_wnd_workgroup_size),
+			[=](sycl::nd_item<2> item) {
+				runFluxUpdateKernel(kernel_data, item);
 			});
 	});
 
 	kernel_events->at(KERNEL_FLUX_BOUND) = queue->submit([&](sycl::handler &cgh) {
 		cgh.depends_on({ kernel_events->at(KERNEL_FLUX_UPDATE) });
-		cgh.parallel_for(sycl::nd_range<1>(
-				sycl::range<1>(nBlocks) * sycl::range<1>(nThreads),
-				sycl::range<1>(nThreads)),
-			[=](sycl::nd_item<1> item_ct1) {
-				runFluxBoundaryKernel(data_ct0, item_ct1);
+		cgh.parallel_for(sycl::nd_range<1>(boundary_size, boundary_workgroup_size),
+			[=](sycl::nd_item<1> item) {
+				runFluxBoundaryKernel(kernel_data, item);
 			});
 	});
 
 	kernel_events->at(KERNEL_MEMSET) = queue->memset(data.g_MinMax, 0, sizeof(sycl::int4));
 
 	kernel_events->at(KERNEL_EXTEND) = queue->submit([&](sycl::handler &cgh) {
-		cgh.depends_on({ kernel_events->at(KERNEL_FLUX_BOUND) });
-		cgh.parallel_for(sycl::nd_range<1>(
-				sycl::range<1>(nBlocks) * sycl::range<1>(nThreads),
-				sycl::range<1>(nThreads)),
-			[=](sycl::nd_item<1> item_ct1) {
-				runGridExtendKernel(data_ct0, item_ct1);
+		cgh.depends_on({ kernel_events->at(KERNEL_FLUX_BOUND), kernel_events->at(KERNEL_MEMSET) });
+		cgh.parallel_for(sycl::nd_range<1>(boundary_size, boundary_workgroup_size),
+			[=](sycl::nd_item<1> item) {
+				runGridExtendKernel(kernel_data, item);
 			});
 	});
 
@@ -319,6 +313,7 @@ int CGpuNode::run() {
 	kernel_events->at(KERNEL_EXTEND).wait();
 	queue->memcpy(&MinMax, data.g_MinMax, sizeof(sycl::int4)).wait();
 
+	/* TODO: respect alignments from device in window expansion (Preferred work group size multiple ?!) */
 	if (static_cast<int>(MinMax.x())) Imin = dp.iMin = std::max(dp.iMin - 1, 2);
 	if (static_cast<int>(MinMax.y())) Imax = dp.iMax = std::min(dp.iMax + 1, dp.nI - 1);
 	if (static_cast<int>(MinMax.z())) Jmin = dp.jMin = std::max(dp.jMin - 32, 2);

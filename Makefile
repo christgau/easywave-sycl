@@ -1,5 +1,5 @@
 #CXX=clang++
-CXXFLAGS=-O3 -g
+CXXFLAGS=-O3 -ffast-math -march=native -mtune=native -ftree-vectorize -ffast-math -Rpass=loop-vectorize -cl-fast-relaxed-math -fvectorize
 #CXXFLAGS=-O3 -march=native -mtune=native -ftree-vectorize -ffast-math -Rpass=loop-vectorize -cl-fast-relaxed-math -fvectorize \
 	--gcc-toolchain=$(GCC_ROOT) \
 	-fsycl \
