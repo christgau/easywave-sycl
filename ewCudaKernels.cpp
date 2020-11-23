@@ -49,7 +49,7 @@ SYCL_EXTERNAL void runWaveUpdateKernel(KernelData data, sycl::nd_item<2> item_ct
 
     float hh = data.h[ij] - data.cR1[ij] * ( data.fM[ij] - data.fM[data.le(ij)] + data.fN[ij] * data.cR6[j] - data.fN[data.dn(ij)]*data.cR6[j-1] );
 
-    absH = fabsf(hh);
+    absH = sycl::fabs(hh);
 
     if( absH < dp.sshZeroThreshold ) {
 	  hh = 0.f;
@@ -97,45 +97,45 @@ SYCL_EXTERNAL void runWaveBoundaryKernel(KernelData data, sycl::nd_item<1> item_
 
 	if( dp.jMin <= 2 && id <= dp.nI-1 ) {
 	  ij = dt.idx(id,1);
-	  dt.h[ij] = sqrtf( SQR(dt.fN[ij]) + 0.25f*SQR((dt.fM[ij] + dt.fM[dt.le(ij)])) )*dt.cB1[id-1];
+	  dt.h[ij] = sycl::sqrt( SQR(dt.fN[ij]) + 0.25f*SQR((dt.fM[ij] + dt.fM[dt.le(ij)])) )*dt.cB1[id-1];
 	  if( dt.fN[ij] > 0 ) dt.h[ij] = -dt.h[ij];
 	}
 
 	if( dp.jMax >= dp.nJ - 1 && id <= dp.nI-1 ) {
 	  ij = dt.idx(id,dp.nJ);
-	  dt.h[ij] = sqrtf( SQR(dt.fN[dt.dn(ij)]) + 0.25f*SQR((dt.fM[ij] + dt.fM[dt.dn(ij)])) )*dt.cB3[id-1];
+	  dt.h[ij] = sycl::sqrt( SQR(dt.fN[dt.dn(ij)]) + 0.25f*SQR((dt.fM[ij] + dt.fM[dt.dn(ij)])) )*dt.cB3[id-1];
 	  if( dt.fN[dt.dn(ij)] < 0 ) dt.h[ij] = -dt.h[ij];
 	}
 
 	if( dp.iMin <= 2 && id <= dp.nJ-1 ) {
 	  ij = dt.idx(1,id);
-	  dt.h[ij] = sqrtf( SQR(dt.fM[ij]) + 0.25f*SQR((dt.fN[ij] + dt.fN[dt.dn(ij)])) )*dt.cB2[id-1];
+	  dt.h[ij] = sycl::sqrt( SQR(dt.fM[ij]) + 0.25f*SQR((dt.fN[ij] + dt.fN[dt.dn(ij)])) )*dt.cB2[id-1];
 	  if( dt.fM[ij] > 0 ) dt.h[ij] = -dt.h[ij];
 	}
 
 	if( dp.iMax <= dp.nI -1 && id <= dp.nJ-1 ) {
 	  ij = dt.idx(dp.nI,id);
-	  dt.h[ij] = sqrtf( SQR(dt.fM[dt.le(ij)]) + 0.25f*SQR((dt.fN[ij] + dt.fN[dt.dn(ij)])) )*dt.cB4[id-1];
+	  dt.h[ij] = sycl::sqrt( SQR(dt.fM[dt.le(ij)]) + 0.25f*SQR((dt.fN[ij] + dt.fN[dt.dn(ij)])) )*dt.cB4[id-1];
 	  if( dt.fM[dt.le(ij)] < 0 ) dt.h[ij] = -dt.h[ij];
 	}
 
 	if( id == 2 && dp.jMin <= 2 ) {
 	  ij = dt.idx(1,1);
-	  dt.h[ij] = sqrtf( SQR(dt.fM[ij]) + SQR(dt.fN[ij]) )*dt.cB1[0];
+	  dt.h[ij] = sycl::sqrt( SQR(dt.fM[ij]) + SQR(dt.fN[ij]) )*dt.cB1[0];
 	  if( dt.fN[ij] > 0 ) dt.h[ij] = -dt.h[ij];
 
 	  ij = dt.idx(dp.nI,1);
-	  dt.h[ij] = sqrtf( SQR(dt.fM[dt.le(ij)]) + SQR(dt.fN[ij]) )*dt.cB1[dp.nI-1];
+	  dt.h[ij] = sycl::sqrt( SQR(dt.fM[dt.le(ij)]) + SQR(dt.fN[ij]) )*dt.cB1[dp.nI-1];
 	  if( dt.fN[ij] > 0 ) dt.h[ij] = -dt.h[ij];
 	}
 
 	if( id == 2 && dp.jMin >= dp.nJ - 1 ) {
 	  ij = dt.idx(1,dp.nJ);
-	  dt.h[ij] = sqrtf( SQR(dt.fM[ij]) + SQR(dt.fN[dt.dn(ij)]) )*dt.cB3[0];
+	  dt.h[ij] = sycl::sqrt( SQR(dt.fM[ij]) + SQR(dt.fN[dt.dn(ij)]) )*dt.cB3[0];
 	  if( dt.fN[dt.dn(ij)] < 0 ) dt.h[ij] = -dt.h[ij];
 
 	  ij = dt.idx(dp.nI,dp.nJ);
-	  dt.h[ij] = sqrtf( SQR(dt.fM[dt.le(ij)]) + SQR(dt.fN[dt.dn(ij)]) )*dt.cB3[dp.nI-1];
+	  dt.h[ij] = sycl::sqrt( SQR(dt.fM[dt.le(ij)]) + SQR(dt.fN[dt.dn(ij)]) )*dt.cB3[dp.nI-1];
 	  if( dt.fN[dt.dn(ij)] < 0 ) dt.h[ij] = -dt.h[ij];
 	}
 }
@@ -179,8 +179,6 @@ SYCL_EXTERNAL void runFluxBoundaryKernel(KernelData data, sycl::nd_item<1> item_
 	}
 }
 
-#define atomicAdd dpct::atomic_fetch_add
-
 SYCL_EXTERNAL void runGridExtendKernel(KernelData data, sycl::nd_item<1> item_ct1)
 {
     Params& dp = data.params;
@@ -189,23 +187,28 @@ SYCL_EXTERNAL void runGridExtendKernel(KernelData data, sycl::nd_item<1> item_ct
 
 #ifndef USE_LOOP_EXTEND
 
-	if( id >= dp.jMin && id <= dp.jMax ) {
 
-	  if( fabsf(data.h[data.idx(dp.iMin+2,id)]) > dp.sshClipThreshold )
-		  atomicAdd( &(data.g_MinMax->x()), 1 );
+    if ( id >= dp.jMin && id <= dp.jMax ) {
 
-	  if( fabsf(data.h[data.idx(dp.iMax-2,id)]) > dp.sshClipThreshold )
-		  atomicAdd( &(data.g_MinMax->y()), 1 );
-	}
+          if (sycl::fabs(data.h[data.idx(dp.iMin + 2, id)]) > dp.sshClipThreshold)
+                  sycl::atomic<int>(sycl::global_ptr<int>(&(data.g_MinMax->x())))
+                      .fetch_add(1);
 
-	if( id >= dp.iMin && id <= dp.iMax ) {
+          if (sycl::fabs(data.h[data.idx(dp.iMax - 2, id)]) > dp.sshClipThreshold)
+                  sycl::atomic<int>(sycl::global_ptr<int>(&(data.g_MinMax->y())))
+                      .fetch_add(1);
+    }
 
-	  if( fabsf(data.h[data.idx(id,dp.jMin+2)]) > dp.sshClipThreshold )
-		  atomicAdd( &(data.g_MinMax->z()), 1 );
+	if ( id >= dp.iMin && id <= dp.iMax ) {
 
-	  if( fabsf(data.h[data.idx(id,dp.jMax-2)]) > dp.sshClipThreshold )
-		  atomicAdd( &(data.g_MinMax->w()), 1 );
-	}
+          if (sycl::fabs(data.h[data.idx(id, dp.jMin + 2)]) > dp.sshClipThreshold)
+                  sycl::atomic<int>(sycl::global_ptr<int>(&(data.g_MinMax->z())))
+                      .fetch_add(1);
+
+          if (sycl::fabs(data.h[data.idx(id, dp.jMax - 2)]) > dp.sshClipThreshold)
+                  sycl::atomic<int>(sycl::global_ptr<int>(&(data.g_MinMax->w())))
+                      .fetch_add(1);
+    }
 
 #else
 
