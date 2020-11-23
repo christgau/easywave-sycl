@@ -321,7 +321,7 @@ int CGpuNode::run() {
 
 	for( int j = 0; have_profiling && j < NUM_TIMED_KERNELS; j++ ) {
 		dur[j] += (kernel_events->at(j).get_profiling_info<cl::sycl::info::event_profiling::command_end>()
-			- kernel_events->at(j).get_profiling_info<cl::sycl::info::event_profiling::command_submit>()) / 1.0E+6;
+			- kernel_events->at(j).get_profiling_info<cl::sycl::info::event_profiling::command_start>()) / 1.0E+6;
 	}
 
 	/* data has changed now -> copy becomes necessary */
