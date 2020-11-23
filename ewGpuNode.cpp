@@ -314,10 +314,10 @@ int CGpuNode::run() {
 	queue->memcpy(&MinMax, data.g_MinMax, sizeof(sycl::int4)).wait();
 
 	/* TODO: respect alignments from device in window expansion (Preferred work group size multiple ?!) */
-	if (static_cast<int>(MinMax.x())) Imin = dp.iMin = std::max(dp.iMin - 1, 2);
-	if (static_cast<int>(MinMax.y())) Imax = dp.iMax = std::min(dp.iMax + 1, dp.nI - 1);
-	if (static_cast<int>(MinMax.z())) Jmin = dp.jMin = std::max(dp.jMin - 32, 2);
-	if (static_cast<int>(MinMax.w())) Jmax = dp.jMax = std::min(dp.jMax + 1, dp.nJ - 1);
+	if (MinMax.x()) Imin = dp.iMin = std::max(dp.iMin - 1, 2);
+	if (MinMax.y()) Imax = dp.iMax = std::min(dp.iMax + 1, dp.nI - 1);
+	if (MinMax.z()) Jmin = dp.jMin = std::max(dp.jMin - 32, 2);
+	if (MinMax.w()) Jmax = dp.jMax = std::min(dp.jMax + 1, dp.nJ - 1);
 
 	for( int j = 0; have_profiling && j < NUM_TIMED_KERNELS; j++ ) {
 		dur[j] += (kernel_events->at(j).get_profiling_info<cl::sycl::info::event_profiling::command_end>()
