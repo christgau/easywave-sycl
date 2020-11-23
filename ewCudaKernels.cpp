@@ -217,7 +217,7 @@ SYCL_EXTERNAL void runGridExtendKernel(KernelData data, sycl::nd_item<1> item_ct
           for( int j = dp.jMin; j <= dp.jMax; j++ ) {
 
             if (sycl::fabs(data.h[data.idx(dp.iMin + 2, j)]) > dp.sshClipThreshold) {
-                data.g_MinMax->x = 1;
+                data.g_MinMax->x() = 1;
                 break;
             }
 
@@ -226,7 +226,7 @@ SYCL_EXTERNAL void runGridExtendKernel(KernelData data, sycl::nd_item<1> item_ct
           for( int j = dp.jMin; j <= dp.jMax; j++ ) {
 
             if (sycl::fabs(data.h[data.idx(dp.iMax - 2, j)]) > dp.sshClipThreshold) {
-               data.g_MinMax->y = 1;
+               data.g_MinMax->y() = 1;
                break;
             }
 
@@ -235,7 +235,7 @@ SYCL_EXTERNAL void runGridExtendKernel(KernelData data, sycl::nd_item<1> item_ct
           for( int i = dp.iMin; i <= dp.iMax; i++ ) {
 
             if (sycl::fabs(data.h[data.idx(i, dp.jMin + 2)]) > dp.sshClipThreshold) {
-              data.g_MinMax->z = 1;
+              data.g_MinMax->z() = 1;
               break;
             }
 
@@ -244,7 +244,7 @@ SYCL_EXTERNAL void runGridExtendKernel(KernelData data, sycl::nd_item<1> item_ct
           for( int i = dp.iMin; i <= dp.iMax; i++ ) {
 
             if (sycl::fabs(data.h[data.idx(i, dp.jMax - 2)]) > dp.sshClipThreshold) {
-              data.g_MinMax->w = 1;
+              data.g_MinMax->w() = 1;
               break;
             }
 
