@@ -251,14 +251,14 @@ int CGpuNode::run() {
 	size_t max_wg_size = dev.get_info<cl::sycl::info::device::max_work_group_size>();
 
 	/* Using max wg size or a preferred wg_size would be better here, but causes runtime errors (CL_OUT_OF_RESOURCES) */
-	sycl::range<1> boundary_workgroup_size(max_wg_size); /* div by 7 works as well for CPU, but not by 6 */
+	sycl::range<1> boundary_workgroup_size(max_wg_size / 4); /* div by 7 works as well for CPU, but not by 6 */
 	sycl::range<1> boundary_size(INT_CEIL(std::max(dp.nI, dp.nJ), boundary_workgroup_size[0]));
 
 	/* Originally we had n = 128 threads, 32 for x and 128/x = 4 threads, hardcoded. So do this again here, to avoid runtime errors */
-	sycl::range<2> compute_wnd_workgroup_size(32, 4);
+	sycl::range<2> compute_wnd_workgroup_size(4, 32);
 	sycl::range<2> compute_wnd_size(
-		INT_CEIL(NJ, compute_wnd_workgroup_size[0]),
-		INT_CEIL(NI, compute_wnd_workgroup_size[1])
+		INT_CEIL(NI, compute_wnd_workgroup_size[0]),
+		INT_CEIL(NJ, compute_wnd_workgroup_size[1])
 	);
 
 	dp.mTime = Par.time;
