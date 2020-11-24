@@ -122,7 +122,7 @@ protected:
 
 	bool have_profiling;
 	std::vector<cl::sycl::event> *kernel_events;
-	cl::sycl::queue *queue;
+	cl::sycl::queue *queue, *memory_queue;
 
 public:
 	CGpuNode();

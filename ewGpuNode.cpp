@@ -52,7 +52,7 @@ CGpuNode::CGpuNode() {
 	auto &dev = dpct::dev_mgr::instance().current_device();
 	dev.get_device_info(di);
 	std::cout << "running in accellerated mode using " << di.get_name() << std::endl;
-	std::cout << "Profling supported: " << dev.get_info<cl::sycl::info::device::queue_profiling>() << std::endl;
+	std::cout << "Profiling supported: " << dev.get_info<cl::sycl::info::device::queue_profiling>() << std::endl;
 
 	auto kernels = dev.get_info<cl::sycl::info::device::built_in_kernels>();
 	std::cout << "Built-in kernels: " << (kernels.size() ? std::to_string(kernels.size()) : "None.") << std::endl;
@@ -72,6 +72,8 @@ CGpuNode::CGpuNode() {
 	} else {
 		queue = &dpct::get_default_queue();
 	}
+
+	memory_queue = &dpct::get_default_queue();
 }
 
 CGpuNode::~CGpuNode()
@@ -113,13 +115,13 @@ int CGpuNode::mallocMem() {
     /* TODO: cR3, cR5 for coriolis */
 
 	/* 1-dim */
-    (data.cR6) = (float *)sycl::malloc_device(dp.nJ * sizeof(float), dpct::get_current_device(), dpct::get_default_context());
-	(data.cB1) = (float *)sycl::malloc_device(dp.nI * sizeof(float), dpct::get_current_device(), dpct::get_default_context());
-	(data.cB2) = (float *)sycl::malloc_device(dp.nJ * sizeof(float), dpct::get_current_device(), dpct::get_default_context());
-	(data.cB3) = (float *)sycl::malloc_device(dp.nI * sizeof(float), dpct::get_current_device(), dpct::get_default_context());
-	(data.cB4) = (float *)sycl::malloc_device(dp.nJ * sizeof(float), dpct::get_current_device(), dpct::get_default_context());
+	data.cR6 = sycl::malloc_device<float>(dp.nJ, *memory_queue);
+	data.cB1 = sycl::malloc_device<float>(dp.nI, *memory_queue);
+	data.cB2 = sycl::malloc_device<float>(dp.nJ, *memory_queue);
+	data.cB3 = sycl::malloc_device<float>(dp.nI, *memory_queue);
+	data.cB4 = sycl::malloc_device<float>(dp.nJ, *memory_queue);
 
-	(data.g_MinMax) = (sycl::int4 *)sycl::malloc_device( sizeof(sycl::int4), dpct::get_current_device(), dpct::get_default_context());
+	data.g_MinMax = sycl::malloc_device<sycl::int4>(1, *memory_queue);
 
 	/* TODO: make sure that pitch is a multiple of 4 and the same for each cudaMallocPitch() call */
 	dp.pI = pitch / sizeof(float);
@@ -154,13 +156,11 @@ int CGpuNode::copyToGPU() {
 
 	/* FIXME: move global variables into data structure */
 	/* 1-dim */
-	sycl::queue &q_ct0 = dpct::get_default_queue();
-	q_ct0.wait();
-	q_ct0.memcpy(data.cR6, R6, dp.nJ * sizeof(float)).wait();
-	q_ct0.memcpy(data.cB1, C1, dp.nI * sizeof(float)).wait();
-	q_ct0.memcpy(data.cB2, C2, dp.nJ * sizeof(float)).wait();
-	q_ct0.memcpy(data.cB3, C3, dp.nI * sizeof(float)).wait();
-	q_ct0.memcpy(data.cB4, C4, dp.nJ * sizeof(float)).wait();
+	memory_queue->memcpy(data.cR6, R6, dp.nJ * sizeof(float)).wait();
+	memory_queue->memcpy(data.cB1, C1, dp.nI * sizeof(float)).wait();
+	memory_queue->memcpy(data.cB2, C2, dp.nJ * sizeof(float)).wait();
+	memory_queue->memcpy(data.cB3, C3, dp.nI * sizeof(float)).wait();
+	memory_queue->memcpy(data.cB4, C4, dp.nJ * sizeof(float)).wait();
 
 	return 0;
 }
@@ -205,7 +205,7 @@ int CGpuNode::copyPOIs() {
 
 		int id = data.idx( i, j );
 
-		dpct::get_default_queue().memcpy(h + idxPOI[n], data.h + dp.lpad + id, sizeof(float)) .wait();
+		memory_queue->memcpy(h + idxPOI[n], data.h + dp.lpad + id, sizeof(float)).wait();
 	}
 
 	return 0;
@@ -214,24 +214,24 @@ int CGpuNode::copyPOIs() {
 int CGpuNode::freeMem() {
 
 	/* 2-dim */
-	sycl::free(data.d, dpct::get_default_context());
-	sycl::free(data.h, dpct::get_default_context());
-	sycl::free(data.hMax, dpct::get_default_context());
-	sycl::free(data.fM, dpct::get_default_context());
-	sycl::free(data.fN, dpct::get_default_context());
-	sycl::free(data.cR1, dpct::get_default_context());
-	sycl::free(data.cR2, dpct::get_default_context());
-	sycl::free(data.cR4, dpct::get_default_context());
-	sycl::free(data.tArr, dpct::get_default_context());
+	sycl::free(data.d, *memory_queue);
+	sycl::free(data.h, *memory_queue);
+	sycl::free(data.hMax, *memory_queue);
+	sycl::free(data.fM, *memory_queue);
+	sycl::free(data.fN, *memory_queue);
+	sycl::free(data.cR1, *memory_queue);
+	sycl::free(data.cR2, *memory_queue);
+	sycl::free(data.cR4, *memory_queue);
+	sycl::free(data.tArr, *memory_queue);
 
 	/* 1-dim */
-	sycl::free(data.cR6, dpct::get_default_context());
-	sycl::free(data.cB1, dpct::get_default_context());
-	sycl::free(data.cB2, dpct::get_default_context());
-	sycl::free(data.cB3, dpct::get_default_context());
-	sycl::free(data.cB4, dpct::get_default_context());
+	sycl::free(data.cR6, *memory_queue);
+	sycl::free(data.cB1, *memory_queue);
+	sycl::free(data.cB2, *memory_queue);
+	sycl::free(data.cB3, *memory_queue);
+	sycl::free(data.cB4, *memory_queue);
 
-	sycl::free(data.g_MinMax, dpct::get_default_context());
+	sycl::free(data.g_MinMax, *memory_queue);
 
 	CArrayNode::freeMem();
 
