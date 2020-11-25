@@ -299,7 +299,7 @@ int CGpuNode::run() {
 			});
 	});
 
-	kernel_events->at(KERNEL_MEMSET) = queue->memset(data.g_MinMax, 0, sizeof(sycl::int4));
+	kernel_events->at(KERNEL_MEMSET) = memory_queue->memset(data.g_MinMax, 0, sizeof(sycl::int4));
 
 	kernel_events->at(KERNEL_EXTEND) = queue->submit([&](sycl::handler &cgh) {
 		cgh.depends_on({ kernel_events->at(KERNEL_FLUX_BOUND), kernel_events->at(KERNEL_MEMSET) });
@@ -311,7 +311,7 @@ int CGpuNode::run() {
 
 	sycl::int4 MinMax;
 	kernel_events->at(KERNEL_EXTEND).wait();
-	queue->memcpy(&MinMax, data.g_MinMax, sizeof(sycl::int4)).wait();
+	memory_queue->memcpy(&MinMax, data.g_MinMax, sizeof(sycl::int4)).wait();
 
 	/* TODO: respect alignments from device in window expansion (Preferred work group size multiple ?!) */
 	if (MinMax.x()) Imin = dp.iMin = std::max(dp.iMin - 1, 2);
