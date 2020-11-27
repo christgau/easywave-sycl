@@ -121,8 +121,7 @@ protected:
 	static constexpr int KERNEL_MEMSET = 5;
 
 	bool have_profiling;
-	std::vector<cl::sycl::event> *kernel_events;
-	cl::sycl::queue *queue, *memory_queue;
+	cl::sycl::queue *queue, *default_queue;
 
 public:
 	CGpuNode();

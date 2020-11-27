@@ -60,29 +60,30 @@ CGpuNode::CGpuNode() {
 		std::cout << " - " << k << std::endl;
 	}
 
-	/* use new here, otherwise you earn a crash in glibc memory allocation */
-	kernel_events = new std::vector<cl::sycl::event>(NUM_KERNELS);
-
 	for( int i = 0; i < NUM_TIMED_KERNELS; i++ ) { dur[i] = 0.0; }
 
+	default_queue = &dev.default_queue();
 	have_profiling = dev.get_info<cl::sycl::info::device::queue_profiling>() && Par.verbose;
+
+    /*
 	if (have_profiling) {
 		auto enable_list = cl::sycl::property_list{cl::sycl::property::queue::enable_profiling()};
 		queue = new cl::sycl::queue(dev, enable_list);
 	} else {
 		queue = &dpct::get_default_queue();
 	}
-
-	memory_queue = &dpct::get_default_queue();
+    */
+	queue = &dev.default_queue();
 }
 
 CGpuNode::~CGpuNode()
 {
 	/* not really safe, but try to free a possibly manually created queue */
+/*
 	if (*queue != dpct::get_default_queue()) {
 		delete queue;
 	}
-	delete kernel_events;
+*/
 }
 
 int CGpuNode::mallocMem() {
@@ -115,13 +116,13 @@ int CGpuNode::mallocMem() {
     /* TODO: cR3, cR5 for coriolis */
 
 	/* 1-dim */
-	data.cR6 = sycl::malloc_device<float>(dp.nJ, *memory_queue);
-	data.cB1 = sycl::malloc_device<float>(dp.nI, *memory_queue);
-	data.cB2 = sycl::malloc_device<float>(dp.nJ, *memory_queue);
-	data.cB3 = sycl::malloc_device<float>(dp.nI, *memory_queue);
-	data.cB4 = sycl::malloc_device<float>(dp.nJ, *memory_queue);
+	data.cR6 = sycl::malloc_device<float>(dp.nJ, *default_queue);
+	data.cB1 = sycl::malloc_device<float>(dp.nI, *default_queue);
+	data.cB2 = sycl::malloc_device<float>(dp.nJ, *default_queue);
+	data.cB3 = sycl::malloc_device<float>(dp.nI, *default_queue);
+	data.cB4 = sycl::malloc_device<float>(dp.nJ, *default_queue);
 
-	data.g_MinMax = sycl::malloc_device<sycl::int4>(1, *memory_queue);
+	data.g_MinMax = sycl::malloc_device<sycl::int4>(1, *default_queue);
 
 	/* TODO: make sure that pitch is a multiple of 4 and the same for each cudaMallocPitch() call */
 	dp.pI = pitch / sizeof(float);
@@ -156,11 +157,11 @@ int CGpuNode::copyToGPU() {
 
 	/* FIXME: move global variables into data structure */
 	/* 1-dim */
-	memory_queue->memcpy(data.cR6, R6, dp.nJ * sizeof(float)).wait();
-	memory_queue->memcpy(data.cB1, C1, dp.nI * sizeof(float)).wait();
-	memory_queue->memcpy(data.cB2, C2, dp.nJ * sizeof(float)).wait();
-	memory_queue->memcpy(data.cB3, C3, dp.nI * sizeof(float)).wait();
-	memory_queue->memcpy(data.cB4, C4, dp.nJ * sizeof(float)).wait();
+	default_queue->memcpy(data.cR6, R6, dp.nJ * sizeof(float)).wait();
+	default_queue->memcpy(data.cB1, C1, dp.nI * sizeof(float)).wait();
+	default_queue->memcpy(data.cB2, C2, dp.nJ * sizeof(float)).wait();
+	default_queue->memcpy(data.cB3, C3, dp.nI * sizeof(float)).wait();
+	default_queue->memcpy(data.cB4, C4, dp.nJ * sizeof(float)).wait();
 
 	return 0;
 }
@@ -205,33 +206,34 @@ int CGpuNode::copyPOIs() {
 
 		int id = data.idx( i, j );
 
-		memory_queue->memcpy(h + idxPOI[n], data.h + dp.lpad + id, sizeof(float)).wait();
+		dpct::get_default_queue().memcpy(h + idxPOI[n], data.h + dp.lpad + id, sizeof(float)).wait();
 	}
 
 	return 0;
 }
 
 int CGpuNode::freeMem() {
+	dpct::device_ext &dev = dpct::get_current_device();
 
 	/* 2-dim */
-	sycl::free(data.d, *memory_queue);
-	sycl::free(data.h, *memory_queue);
-	sycl::free(data.hMax, *memory_queue);
-	sycl::free(data.fM, *memory_queue);
-	sycl::free(data.fN, *memory_queue);
-	sycl::free(data.cR1, *memory_queue);
-	sycl::free(data.cR2, *memory_queue);
-	sycl::free(data.cR4, *memory_queue);
-	sycl::free(data.tArr, *memory_queue);
+	sycl::free(data.d, *default_queue);
+	sycl::free(data.h, *default_queue);
+	sycl::free(data.hMax, *default_queue);
+	sycl::free(data.fM, *default_queue);
+	sycl::free(data.fN, *default_queue);
+	sycl::free(data.cR1, *default_queue);
+	sycl::free(data.cR2, *default_queue);
+	sycl::free(data.cR4, *default_queue);
+	sycl::free(data.tArr, *default_queue);
 
 	/* 1-dim */
-	sycl::free(data.cR6, *memory_queue);
-	sycl::free(data.cB1, *memory_queue);
-	sycl::free(data.cB2, *memory_queue);
-	sycl::free(data.cB3, *memory_queue);
-	sycl::free(data.cB4, *memory_queue);
+	sycl::free(data.cR6, *default_queue);
+	sycl::free(data.cB1, *default_queue);
+	sycl::free(data.cB2, *default_queue);
+	sycl::free(data.cB3, *default_queue);
+	sycl::free(data.cB4, *default_queue);
 
-	sycl::free(data.g_MinMax, *memory_queue);
+	sycl::free(data.g_MinMax, *default_queue);
 
 	CArrayNode::freeMem();
 
@@ -241,13 +243,14 @@ int CGpuNode::freeMem() {
 #define INT_CEIL(x, n) ((((x) + (n) - 1) / (n)) * (n))
 
 int CGpuNode::run() {
+	dpct::device_ext &dev = dpct::get_current_device();
+	sycl::queue &q = dev.default_queue();
 
 	Params& dp = data.params;
 
 	int NJ = dp.jMax - dp.jMin + 1;
 	int NI = dp.iMax - dp.iMin + 1;
 
-	const cl::sycl::device dev = queue->get_device();
 	size_t max_wg_size = dev.get_info<cl::sycl::info::device::max_work_group_size>();
 
 	/* Using max wg size or a preferred wg_size would be better here, but causes runtime errors (CL_OUT_OF_RESOURCES) */
@@ -263,9 +266,11 @@ int CGpuNode::run() {
 
 	dp.mTime = Par.time;
 
-	auto kernel_data = data;
+	std::array<cl::sycl::event, NUM_KERNELS> kernel_events;
 
-	kernel_events->at(KERNEL_WAVE_UPDATE) = queue->submit([&](sycl::handler &cgh) {
+	kernel_events[KERNEL_WAVE_UPDATE] = q.submit([&](sycl::handler &cgh) {
+	    auto kernel_data = data;
+
 		cgh.parallel_for(
 			sycl::nd_range<2>(compute_wnd_size, compute_wnd_workgroup_size),
 			[=](sycl::nd_item<2> item) {
@@ -273,8 +278,9 @@ int CGpuNode::run() {
 			});
 	});
 
-	kernel_events->at(KERNEL_WAVE_BOUND) = queue->submit([&](sycl::handler &cgh) {
-		cgh.depends_on({ kernel_events->at(KERNEL_WAVE_UPDATE) });
+	kernel_events[KERNEL_WAVE_BOUND] = q.submit([&](sycl::handler &cgh) {
+		cgh.depends_on({ kernel_events[KERNEL_WAVE_UPDATE] });
+	    auto kernel_data = data;
 		cgh.parallel_for(
 			sycl::nd_range<1>(boundary_size, boundary_workgroup_size),
 			[=](sycl::nd_item<1> item) {
@@ -282,8 +288,9 @@ int CGpuNode::run() {
 			});
 	});
 
-	kernel_events->at(KERNEL_FLUX_UPDATE) = queue->submit([&](sycl::handler &cgh) {
-		cgh.depends_on({ kernel_events->at(KERNEL_WAVE_BOUND) });
+	kernel_events[KERNEL_FLUX_UPDATE] = q.submit([&](sycl::handler &cgh) {
+		cgh.depends_on({ kernel_events[KERNEL_WAVE_BOUND] });
+	    auto kernel_data = data;
 		cgh.parallel_for(
 			sycl::nd_range<2>(compute_wnd_size, compute_wnd_workgroup_size),
 			[=](sycl::nd_item<2> item) {
@@ -291,39 +298,42 @@ int CGpuNode::run() {
 			});
 	});
 
-	kernel_events->at(KERNEL_FLUX_BOUND) = queue->submit([&](sycl::handler &cgh) {
-		cgh.depends_on({ kernel_events->at(KERNEL_FLUX_UPDATE) });
+	kernel_events[KERNEL_FLUX_BOUND] = q.submit([&](sycl::handler &cgh) {
+		cgh.depends_on({ kernel_events[KERNEL_FLUX_UPDATE] });
+	    auto kernel_data = data;
 		cgh.parallel_for(sycl::nd_range<1>(boundary_size, boundary_workgroup_size),
 			[=](sycl::nd_item<1> item) {
 				runFluxBoundaryKernel(kernel_data, item);
 			});
 	});
 
-	kernel_events->at(KERNEL_MEMSET) = memory_queue->memset(data.g_MinMax, 0, sizeof(sycl::int4));
+	kernel_events[KERNEL_MEMSET] = q.memset(data.g_MinMax, 0, sizeof(sycl::int4));
 
-	kernel_events->at(KERNEL_EXTEND) = queue->submit([&](sycl::handler &cgh) {
-		cgh.depends_on({ kernel_events->at(KERNEL_FLUX_BOUND), kernel_events->at(KERNEL_MEMSET) });
+	kernel_events[KERNEL_EXTEND] = q.submit([&](sycl::handler &cgh) {
+		cgh.depends_on({ kernel_events[KERNEL_FLUX_BOUND], kernel_events[KERNEL_MEMSET] });
+	    auto kernel_data = data;
 		cgh.parallel_for(sycl::nd_range<1>(boundary_size, boundary_workgroup_size),
 			[=](sycl::nd_item<1> item) {
 				runGridExtendKernel(kernel_data, item);
 			});
 	});
+	kernel_events[KERNEL_EXTEND].wait();
 
 	sycl::int4 MinMax;
-	kernel_events->at(KERNEL_EXTEND).wait();
-	memory_queue->memcpy(&MinMax, data.g_MinMax, sizeof(sycl::int4)).wait();
+	default_queue->memcpy(&MinMax, data.g_MinMax, sizeof(sycl::int4)).wait();
+	dev.queues_wait_and_throw();
 
 	/* TODO: respect alignments from device in window expansion (Preferred work group size multiple ?!) */
 	if (MinMax.x()) Imin = dp.iMin = std::max(dp.iMin - 1, 2);
 	if (MinMax.y()) Imax = dp.iMax = std::min(dp.iMax + 1, dp.nI - 1);
 	if (MinMax.z()) Jmin = dp.jMin = std::max(dp.jMin - 32, 2);
 	if (MinMax.w()) Jmax = dp.jMax = std::min(dp.jMax + 1, dp.nJ - 1);
-
+/*
 	for( int j = 0; have_profiling && j < NUM_TIMED_KERNELS; j++ ) {
 		dur[j] += (kernel_events->at(j).get_profiling_info<cl::sycl::info::event_profiling::command_end>()
 			- kernel_events->at(j).get_profiling_info<cl::sycl::info::event_profiling::command_start>()) / 1.0E+6;
 	}
-
+*/
 	/* data has changed now -> copy becomes necessary */
 	copied = false;
 
