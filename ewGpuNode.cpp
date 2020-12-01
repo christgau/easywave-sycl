@@ -65,25 +65,20 @@ CGpuNode::CGpuNode() {
 	default_queue = &dev.default_queue();
 	have_profiling = dev.get_info<cl::sycl::info::device::queue_profiling>() && Par.verbose;
 
-    /*
 	if (have_profiling) {
 		auto enable_list = cl::sycl::property_list{cl::sycl::property::queue::enable_profiling()};
-		queue = new cl::sycl::queue(dev, enable_list);
+		queue = new cl::sycl::queue(default_queue->get_context(), dev, enable_list);
+		std::cout << "per-kernel profiling activated" << std::endl;
 	} else {
-		queue = &dpct::get_default_queue();
+		queue = &dev.default_queue();
 	}
-    */
-	queue = &dev.default_queue();
 }
 
 CGpuNode::~CGpuNode()
 {
-	/* not really safe, but try to free a possibly manually created queue */
-/*
-	if (*queue != dpct::get_default_queue()) {
+	if (have_profiling) {
 		delete queue;
 	}
-*/
 }
 
 int CGpuNode::mallocMem() {
@@ -206,7 +201,7 @@ int CGpuNode::copyPOIs() {
 
 		int id = data.idx( i, j );
 
-		dpct::get_default_queue().memcpy(h + idxPOI[n], data.h + dp.lpad + id, sizeof(float)).wait();
+		default_queue->memcpy(h + idxPOI[n], data.h + dp.lpad + id, sizeof(float)).wait();
 	}
 
 	return 0;
@@ -244,7 +239,7 @@ int CGpuNode::freeMem() {
 
 int CGpuNode::run() {
 	dpct::device_ext &dev = dpct::get_current_device();
-	sycl::queue &q = dev.default_queue();
+	sycl::queue &q = *queue;
 
 	Params& dp = data.params;
 
@@ -328,12 +323,12 @@ int CGpuNode::run() {
 	if (MinMax.y()) Imax = dp.iMax = std::min(dp.iMax + 1, dp.nI - 1);
 	if (MinMax.z()) Jmin = dp.jMin = std::max(dp.jMin - 32, 2);
 	if (MinMax.w()) Jmax = dp.jMax = std::min(dp.jMax + 1, dp.nJ - 1);
-/*
+
 	for( int j = 0; have_profiling && j < NUM_TIMED_KERNELS; j++ ) {
-		dur[j] += (kernel_events->at(j).get_profiling_info<cl::sycl::info::event_profiling::command_end>()
-			- kernel_events->at(j).get_profiling_info<cl::sycl::info::event_profiling::command_start>()) / 1.0E+6;
+		dur[j] += (kernel_events[j].get_profiling_info<cl::sycl::info::event_profiling::command_end>()
+			- kernel_events[j].get_profiling_info<cl::sycl::info::event_profiling::command_start>()) / 1.0E+6;
 	}
-*/
+
 	/* data has changed now -> copy becomes necessary */
 	copied = false;
 
