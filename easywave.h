@@ -58,7 +58,8 @@ int ewDumpPOIsCompact( int istage );
 extern int NPOIs;
 extern long *idxPOI;
 
-extern float dur[5];
+#define NUM_DURATIONS 5
+extern float dur[NUM_DURATIONS];
 
 /* verbose printf: only executed if -verbose was set */
 #define printf_v( Args, ... )	if( Par.verbose ) printf( Args, ##__VA_ARGS__);

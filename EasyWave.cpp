@@ -176,6 +176,8 @@ int main( int argc, char **argv )
 
   Node.freeMem();
 
+  delete gNode;
+
   float total_dur = 0.f;
   for( int j = 0; j < 5; j++ ) {
     printf_v("Duration %u: %.3f\n", j, dur[j]);
@@ -184,8 +186,6 @@ int main( int argc, char **argv )
   printf_v("Duration total: %.3f\n",total_dur);
 
   printf_v("Runtime: %.3lf\n", diff(start, end) * 1000.0);
-
-  delete gNode;
 
   return 0;
 }

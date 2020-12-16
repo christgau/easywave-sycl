@@ -41,6 +41,8 @@
 #include <stdio.h>
 
 #include <chrono>
+#include <string>
+#include <array>
 
 #define CUDA_CALL(x) if( x != cudaSuccess ) { fprintf( stderr, "Error in file %s on line %u: %s\n", __FILE__, __LINE__, cudaGetErrorString( cudaGetLastError() ) ); return 1; }
 
@@ -109,8 +111,8 @@ protected:
 	/* specifies if data was already copied in the current calculation step */
 	bool copied;
 
-	static constexpr int NUM_KERNELS = 6;
-	static constexpr int NUM_TIMED_KERNELS = 5;
+	static constexpr int NUM_KERNELS = 7;
+	static constexpr int NUM_TIMED_KERNELS = 7;
 
 	static constexpr int KERNEL_WAVE_UPDATE = 0;
 	static constexpr int KERNEL_WAVE_BOUND = 1;
@@ -119,6 +121,19 @@ protected:
 	static constexpr int KERNEL_EXTEND = 4;
 	/* extra "kernel" which get an event for synchronization */
 	static constexpr int KERNEL_MEMSET = 5;
+	static constexpr int KERNEL_MEMCPY = 6;
+
+	std::array<float, NUM_TIMED_KERNELS> kernel_duration;
+
+	const std::array<std::string, NUM_TIMED_KERNELS> kernel_names = {{
+		"wave_update",
+		"wave_boundary",
+		"flux_update",
+		"flux_boundary",
+		"grid_extend",
+		"memset_zero",
+		"memcpy_extent"
+	}};
 
 	bool have_profiling;
 	cl::sycl::queue *queue, *default_queue;

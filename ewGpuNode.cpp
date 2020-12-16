@@ -37,6 +37,8 @@
 #include <cmath>
 
 #include <algorithm>
+#include <iomanip>
+#include <numeric>
 
 CGpuNode::CGpuNode() {
 
@@ -79,6 +81,23 @@ CGpuNode::~CGpuNode()
 	if (have_profiling) {
 		delete queue;
 	}
+
+    if (have_profiling) {
+        /* all kernel timings */
+        auto total = std::accumulate(kernel_duration.begin(), kernel_duration.end(), 0.0);
+
+        for (int i = 0; i < kernel_duration.size(); i++) {
+            std::cout << "timing " << i << " (" << kernel_names[i] << "): "
+                << std::fixed << std::setprecision(3) << kernel_duration[i] << " ms ("
+                << std::fixed << std::setprecision(3) << (kernel_duration[i] / total) << ")" << std::endl;
+        }
+        std::cout << "kernel_total: " << total << std::endl;
+
+        /* backwards compatibility */
+        for (int i = 0; i < NUM_DURATIONS; i++) {
+            dur[i] = kernel_duration[i];
+        }
+    }
 }
 
 int CGpuNode::mallocMem() {
@@ -315,7 +334,8 @@ int CGpuNode::run() {
 	kernel_events[KERNEL_EXTEND].wait();
 
 	sycl::int4 MinMax;
-	default_queue->memcpy(&MinMax, data.g_MinMax, sizeof(sycl::int4)).wait();
+	kernel_events[KERNEL_MEMCPY] = q.memcpy(&MinMax, data.g_MinMax, sizeof(sycl::int4));
+	kernel_events[KERNEL_MEMCPY].wait();
 	dev.queues_wait_and_throw();
 
 	/* TODO: respect alignments from device in window expansion (Preferred work group size multiple ?!) */
@@ -325,7 +345,7 @@ int CGpuNode::run() {
 	if (MinMax.w()) Jmax = dp.jMax = std::min(dp.jMax + 1, dp.nJ - 1);
 
 	for( int j = 0; have_profiling && j < NUM_TIMED_KERNELS; j++ ) {
-		dur[j] += (kernel_events[j].get_profiling_info<cl::sycl::info::event_profiling::command_end>()
+		kernel_duration[j] += (kernel_events[j].get_profiling_info<cl::sycl::info::event_profiling::command_end>()
 			- kernel_events[j].get_profiling_info<cl::sycl::info::event_profiling::command_start>()) / 1.0E+6;
 	}
 
