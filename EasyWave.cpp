@@ -41,7 +41,7 @@
 #include "utilits.h"
 #include "easywave.h"
 
-#ifdef CL_SYCL_LANGUAGE_VERSION
+#ifdef SYCL_LANGUAGE_VERSION
 #include "ewGpuNode.hpp"
 #endif
 
@@ -87,7 +87,7 @@ int main( int argc, char **argv )
   Log.print( "%s", buf );
 
   if( Par.gpu ) {
-#ifdef CL_SYCL_LANGUAGE_VERSION
+#ifdef SYCL_LANGUAGE_VERSION
           gNode = new CGpuNode();
 #endif
   } else {
