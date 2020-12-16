@@ -130,13 +130,13 @@ int CGpuNode::mallocMem() {
     /* TODO: cR3, cR5 for coriolis */
 
 	/* 1-dim */
-	data.cR6 = sycl::malloc_device<float>(dp.nJ, *default_queue);
-	data.cB1 = sycl::malloc_device<float>(dp.nI, *default_queue);
-	data.cB2 = sycl::malloc_device<float>(dp.nJ, *default_queue);
-	data.cB3 = sycl::malloc_device<float>(dp.nI, *default_queue);
-	data.cB4 = sycl::malloc_device<float>(dp.nJ, *default_queue);
+	data.cR6 = sycl::malloc_device<float>(dp.nJ, *queue);
+	data.cB1 = sycl::malloc_device<float>(dp.nI, *queue);
+	data.cB2 = sycl::malloc_device<float>(dp.nJ, *queue);
+	data.cB3 = sycl::malloc_device<float>(dp.nI, *queue);
+	data.cB4 = sycl::malloc_device<float>(dp.nJ, *queue);
 
-	data.g_MinMax = sycl::malloc_device<sycl::int4>(1, *default_queue);
+	data.g_MinMax = sycl::malloc_device<sycl::int4>(1, *queue);
 
 	/* TODO: make sure that pitch is a multiple of 4 and the same for each cudaMallocPitch() call */
 	dp.pI = pitch / sizeof(float);
@@ -171,11 +171,11 @@ int CGpuNode::copyToGPU() {
 
 	/* FIXME: move global variables into data structure */
 	/* 1-dim */
-	default_queue->memcpy(data.cR6, R6, dp.nJ * sizeof(float)).wait();
-	default_queue->memcpy(data.cB1, C1, dp.nI * sizeof(float)).wait();
-	default_queue->memcpy(data.cB2, C2, dp.nJ * sizeof(float)).wait();
-	default_queue->memcpy(data.cB3, C3, dp.nI * sizeof(float)).wait();
-	default_queue->memcpy(data.cB4, C4, dp.nJ * sizeof(float)).wait();
+	queue->memcpy(data.cR6, R6, dp.nJ * sizeof(float)).wait();
+	queue->memcpy(data.cB1, C1, dp.nI * sizeof(float)).wait();
+	queue->memcpy(data.cB2, C2, dp.nJ * sizeof(float)).wait();
+	queue->memcpy(data.cB3, C3, dp.nI * sizeof(float)).wait();
+	queue->memcpy(data.cB4, C4, dp.nJ * sizeof(float)).wait();
 
 	return 0;
 }
@@ -220,7 +220,7 @@ int CGpuNode::copyPOIs() {
 
 		int id = data.idx( i, j );
 
-		default_queue->memcpy(h + idxPOI[n], data.h + dp.lpad + id, sizeof(float)).wait();
+		queue->memcpy(h + idxPOI[n], data.h + dp.lpad + id, sizeof(float)).wait();
 	}
 
 	return 0;
