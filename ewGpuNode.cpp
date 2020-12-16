@@ -74,6 +74,10 @@ CGpuNode::CGpuNode() {
 	} else {
 		queue = &dev.default_queue();
 	}
+
+	for (auto &kd: kernel_duration) {
+		kd = 0;
+	}
 }
 
 CGpuNode::~CGpuNode()
@@ -91,7 +95,7 @@ CGpuNode::~CGpuNode()
                 << std::fixed << std::setprecision(3) << kernel_duration[i] << " ms ("
                 << std::fixed << std::setprecision(3) << (kernel_duration[i] / total) << ")" << std::endl;
         }
-        std::cout << "kernel_total: " << total << std::endl;
+        std::cout << "timing_total: " << total << std::endl;
 
         /* backwards compatibility */
         for (int i = 0; i < NUM_DURATIONS; i++) {
