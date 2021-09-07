@@ -35,7 +35,6 @@
 // okada@bosai.go.jp
 
 #include <CL/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include <math.h>
 #define My_PI 3.14159265358979
 #define DISPLMAX 1000

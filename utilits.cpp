@@ -33,7 +33,6 @@
 // last modified 11.07.2012
 
 #include <CL/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>

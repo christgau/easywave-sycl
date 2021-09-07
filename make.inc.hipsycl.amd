@@ -1,0 +1,5 @@
+# configuration for MI100 using hipSYCL
+CXX=syclcc
+CXXFLAGS=-O3 -ffast-math -DSYCL_LANGUAGE_VERSION=121 --hipsycl-gpu-arch=gfx908 --hipsycl-targets=hip:gfx908
+
+INLINE_KERNELS=1

@@ -1,5 +1,3 @@
-#include <CL/sycl.hpp>
-#include <dpct/dpct.hpp>
 /*
  * EasyWave - A realtime tsunami simulation program with GPU support.
  * Copyright (C) 2014  Andrey Babeyko, Johannes Spazier
@@ -31,14 +29,26 @@
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
  */
+#include <CL/sycl.hpp>
 
 #ifndef EW_KERNELS_H
 #define EW_KERNELS_H
 
-SYCL_EXTERNAL void runWaveUpdateKernel(KernelData data, sycl::nd_item<2> item_ct1);
-SYCL_EXTERNAL void runWaveBoundaryKernel(KernelData data, sycl::nd_item<1> item_ct1);
-SYCL_EXTERNAL void runFluxUpdateKernel(KernelData data, sycl::nd_item<2> item_ct1);
-SYCL_EXTERNAL void runFluxBoundaryKernel(KernelData data, sycl::nd_item<1> item_ct1);
-SYCL_EXTERNAL void runGridExtendKernel(KernelData data, sycl::nd_item<1> item_ct1);
+#ifdef __HIPSYCL__
+#define SYCL_EXTERNAL static
+#endif /* __HIPSYCL__ */
+
+SYCL_EXTERNAL void runWaveUpdateKernel(KernelData data, cl::sycl::nd_item<2> item_ct1);
+SYCL_EXTERNAL void runWaveBoundaryKernel(KernelData data, cl::sycl::nd_item<1> item_ct1);
+SYCL_EXTERNAL void runFluxUpdateKernel(KernelData data, cl::sycl::nd_item<2> item_ct1);
+SYCL_EXTERNAL void runFluxBoundaryKernel(KernelData data, cl::sycl::nd_item<1> item_ct1);
+SYCL_EXTERNAL void runGridExtendKernel(KernelData data, cl::sycl::nd_item<1> item_ct1);
+
+#ifdef __HIPSYCL__
+/* hipSYCL does not support SYCL_EXTERNAL so kernels must be contained in the same
+ * compilation unit where they are called. Thus, we do a dirty include of the source
+ * file here (see also https://github.com/illuhad/hipSYCL/issues/604) */
+#include "ewCudaKernels.cpp"
+#endif /* __HIPSYCL__ */
 
 #endif /* EW_KERNELS_H */

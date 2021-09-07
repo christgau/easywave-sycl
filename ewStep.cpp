@@ -32,7 +32,6 @@
 
 // Time stepping
 #include <CL/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include <stdio.h>
 #include <stdlib.h>
 

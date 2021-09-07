@@ -33,7 +33,6 @@
 #define HEADER "\neasyWave ver.2013-04-11\n"
 
 #include <CL/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -89,6 +88,8 @@ int main( int argc, char **argv )
   if( Par.gpu ) {
 #ifdef SYCL_LANGUAGE_VERSION
           gNode = new CGpuNode();
+#else
+          throw std::runtime_error("Called GPU code in a non-GPU build. Consider rebuilding the code");
 #endif
   } else {
 	  //gNode = new CStructNode();
@@ -137,7 +138,7 @@ int main( int argc, char **argv )
     if( Par.outProgress ) {
       if( lastProgress >= Par.outProgress ) {
         printf( "Model time = %s,   elapsed: %ld msec\tdomain (%d, %d)-(%d, %d)\n", utlTimeSplitString(Par.time), elapsed, Jmin, Imin, Jmax, Imax );
-        Log.print( "Model time = %s,   elapsed: %ld msec\tdomain (%d, %d)-(%d, %d)\n", utlTimeSplitString(Par.time), elapsed, Jmin, Imin, Jmax, Imax );
+        Log.print( "Model time = %s,   elapsed: %ld msec\tdomain (%d, %d)-(%d, %d)", utlTimeSplitString(Par.time), elapsed, Jmin, Imin, Jmax, Imax );
         lastProgress = 0;
       }
     }
@@ -185,7 +186,8 @@ int main( int argc, char **argv )
   }
   printf_v("Duration total: %.3f\n",total_dur);
 
-  printf_v("Runtime: %.3lf\n", diff(start, end) * 1000.0);
+  printf_v("Runtime: %.3lf s, final domain: (%d, %d)-(%d, %d), size: %d x %d \n", diff(start, end), Jmin, Imin, Jmax, Imax, Jmax - Jmin, Imax - Imin);
+  Log.print("Runtime: %.3lf s, final domain: (%d, %d)-(%d, %d), size: %d x %d", diff(start, end), Jmin, Imin, Jmax, Imax, Jmax - Jmin, Imax - Imin);
 
   return 0;
 }

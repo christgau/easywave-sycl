@@ -31,7 +31,6 @@
  */
 
 #include <CL/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include <string.h>
 #include <math.h>
 

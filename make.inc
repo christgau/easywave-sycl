@@ -1,0 +1,1 @@
+make.inc.hipsycl.amd

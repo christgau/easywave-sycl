@@ -31,11 +31,10 @@
  */
 
 #include <CL/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include "ewGpuNode.hpp"
 #include "ewCudaKernels.hpp"
 
-SYCL_EXTERNAL void runWaveUpdateKernel(KernelData data, sycl::nd_item<2> item_ct1)
+SYCL_EXTERNAL void runWaveUpdateKernel(KernelData data, cl::sycl::nd_item<2> item_ct1)
 {
   Params& dp = data.params;
 
@@ -49,7 +48,7 @@ SYCL_EXTERNAL void runWaveUpdateKernel(KernelData data, sycl::nd_item<2> item_ct
 
     float hh = data.h[ij] - data.cR1[ij] * ( data.fM[ij] - data.fM[data.le(ij)] + data.fN[ij] * data.cR6[j] - data.fN[data.dn(ij)]*data.cR6[j-1] );
 
-    absH = sycl::fabs(hh);
+    absH = cl::sycl::fabs(hh);
 
     if( absH < dp.sshZeroThreshold ) {
 	  hh = 0.f;
@@ -64,7 +63,7 @@ SYCL_EXTERNAL void runWaveUpdateKernel(KernelData data, sycl::nd_item<2> item_ct
   }
 }
 
-SYCL_EXTERNAL void runFluxUpdateKernel(KernelData data, sycl::nd_item<2> item_ct1)
+SYCL_EXTERNAL void runFluxUpdateKernel(KernelData data, cl::sycl::nd_item<2> item_ct1)
 {
   Params& dp = data.params;
 
@@ -87,7 +86,7 @@ SYCL_EXTERNAL void runFluxUpdateKernel(KernelData data, sycl::nd_item<2> item_ct
 
 #define SQR(x)   ((x) * (x))
 
-SYCL_EXTERNAL void runWaveBoundaryKernel(KernelData data, sycl::nd_item<1> item_ct1)
+SYCL_EXTERNAL void runWaveBoundaryKernel(KernelData data, cl::sycl::nd_item<1> item_ct1)
 {
     KernelData& dt = data;
     Params& dp = data.params;
@@ -97,50 +96,50 @@ SYCL_EXTERNAL void runWaveBoundaryKernel(KernelData data, sycl::nd_item<1> item_
 
 	if( dp.jMin <= 2 && id <= dp.nI-1 ) {
 	  ij = dt.idx(id,1);
-	  dt.h[ij] = sycl::sqrt( SQR(dt.fN[ij]) + 0.25f*SQR((dt.fM[ij] + dt.fM[dt.le(ij)])) )*dt.cB1[id-1];
+	  dt.h[ij] = cl::sycl::sqrt( SQR(dt.fN[ij]) + 0.25f*SQR((dt.fM[ij] + dt.fM[dt.le(ij)])) )*dt.cB1[id-1];
 	  if( dt.fN[ij] > 0 ) dt.h[ij] = -dt.h[ij];
 	}
 
 	if( dp.jMax >= dp.nJ - 1 && id <= dp.nI-1 ) {
 	  ij = dt.idx(id,dp.nJ);
-	  dt.h[ij] = sycl::sqrt( SQR(dt.fN[dt.dn(ij)]) + 0.25f*SQR((dt.fM[ij] + dt.fM[dt.dn(ij)])) )*dt.cB3[id-1];
+	  dt.h[ij] = cl::sycl::sqrt( SQR(dt.fN[dt.dn(ij)]) + 0.25f*SQR((dt.fM[ij] + dt.fM[dt.dn(ij)])) )*dt.cB3[id-1];
 	  if( dt.fN[dt.dn(ij)] < 0 ) dt.h[ij] = -dt.h[ij];
 	}
 
 	if( dp.iMin <= 2 && id <= dp.nJ-1 ) {
 	  ij = dt.idx(1,id);
-	  dt.h[ij] = sycl::sqrt( SQR(dt.fM[ij]) + 0.25f*SQR((dt.fN[ij] + dt.fN[dt.dn(ij)])) )*dt.cB2[id-1];
+	  dt.h[ij] = cl::sycl::sqrt( SQR(dt.fM[ij]) + 0.25f*SQR((dt.fN[ij] + dt.fN[dt.dn(ij)])) )*dt.cB2[id-1];
 	  if( dt.fM[ij] > 0 ) dt.h[ij] = -dt.h[ij];
 	}
 
 	if( dp.iMax <= dp.nI -1 && id <= dp.nJ-1 ) {
 	  ij = dt.idx(dp.nI,id);
-	  dt.h[ij] = sycl::sqrt( SQR(dt.fM[dt.le(ij)]) + 0.25f*SQR((dt.fN[ij] + dt.fN[dt.dn(ij)])) )*dt.cB4[id-1];
+	  dt.h[ij] = cl::sycl::sqrt( SQR(dt.fM[dt.le(ij)]) + 0.25f*SQR((dt.fN[ij] + dt.fN[dt.dn(ij)])) )*dt.cB4[id-1];
 	  if( dt.fM[dt.le(ij)] < 0 ) dt.h[ij] = -dt.h[ij];
 	}
 
 	if( id == 2 && dp.jMin <= 2 ) {
 	  ij = dt.idx(1,1);
-	  dt.h[ij] = sycl::sqrt( SQR(dt.fM[ij]) + SQR(dt.fN[ij]) )*dt.cB1[0];
+	  dt.h[ij] = cl::sycl::sqrt( SQR(dt.fM[ij]) + SQR(dt.fN[ij]) )*dt.cB1[0];
 	  if( dt.fN[ij] > 0 ) dt.h[ij] = -dt.h[ij];
 
 	  ij = dt.idx(dp.nI,1);
-	  dt.h[ij] = sycl::sqrt( SQR(dt.fM[dt.le(ij)]) + SQR(dt.fN[ij]) )*dt.cB1[dp.nI-1];
+	  dt.h[ij] = cl::sycl::sqrt( SQR(dt.fM[dt.le(ij)]) + SQR(dt.fN[ij]) )*dt.cB1[dp.nI-1];
 	  if( dt.fN[ij] > 0 ) dt.h[ij] = -dt.h[ij];
 	}
 
 	if( id == 2 && dp.jMin >= dp.nJ - 1 ) {
 	  ij = dt.idx(1,dp.nJ);
-	  dt.h[ij] = sycl::sqrt( SQR(dt.fM[ij]) + SQR(dt.fN[dt.dn(ij)]) )*dt.cB3[0];
+	  dt.h[ij] = cl::sycl::sqrt( SQR(dt.fM[ij]) + SQR(dt.fN[dt.dn(ij)]) )*dt.cB3[0];
 	  if( dt.fN[dt.dn(ij)] < 0 ) dt.h[ij] = -dt.h[ij];
 
 	  ij = dt.idx(dp.nI,dp.nJ);
-	  dt.h[ij] = sycl::sqrt( SQR(dt.fM[dt.le(ij)]) + SQR(dt.fN[dt.dn(ij)]) )*dt.cB3[dp.nI-1];
+	  dt.h[ij] = cl::sycl::sqrt( SQR(dt.fM[dt.le(ij)]) + SQR(dt.fN[dt.dn(ij)]) )*dt.cB3[dp.nI-1];
 	  if( dt.fN[dt.dn(ij)] < 0 ) dt.h[ij] = -dt.h[ij];
 	}
 }
 
-SYCL_EXTERNAL void runFluxBoundaryKernel(KernelData data, sycl::nd_item<1> item_ct1)
+SYCL_EXTERNAL void runFluxBoundaryKernel(KernelData data, cl::sycl::nd_item<1> item_ct1)
 {
     KernelData& dt = data;
     Params& dp = data.params;
@@ -179,7 +178,7 @@ SYCL_EXTERNAL void runFluxBoundaryKernel(KernelData data, sycl::nd_item<1> item_
 	}
 }
 
-SYCL_EXTERNAL void runGridExtendKernel(KernelData data, sycl::nd_item<1> item_ct1)
+SYCL_EXTERNAL void runGridExtendKernel(KernelData data, cl::sycl::nd_item<1> item_ct1)
 {
     Params& dp = data.params;
 
@@ -190,23 +189,23 @@ SYCL_EXTERNAL void runGridExtendKernel(KernelData data, sycl::nd_item<1> item_ct
 
     if ( id >= dp.jMin && id <= dp.jMax ) {
 
-          if (sycl::fabs(data.h[data.idx(dp.iMin + 2, id)]) > dp.sshClipThreshold)
-                  sycl::atomic<int>(sycl::global_ptr<int>(&(data.g_MinMax->x())))
+          if (cl::sycl::fabs(data.h[data.idx(dp.iMin + 2, id)]) > dp.sshClipThreshold)
+                  cl::sycl::atomic<int>(cl::sycl::global_ptr<int>(&(data.g_MinMax->x())))
                       .fetch_add(1);
 
-          if (sycl::fabs(data.h[data.idx(dp.iMax - 2, id)]) > dp.sshClipThreshold)
-                  sycl::atomic<int>(sycl::global_ptr<int>(&(data.g_MinMax->y())))
+          if (cl::sycl::fabs(data.h[data.idx(dp.iMax - 2, id)]) > dp.sshClipThreshold)
+                  cl::sycl::atomic<int>(cl::sycl::global_ptr<int>(&(data.g_MinMax->y())))
                       .fetch_add(1);
     }
 
 	if ( id >= dp.iMin && id <= dp.iMax ) {
 
-          if (sycl::fabs(data.h[data.idx(id, dp.jMin + 2)]) > dp.sshClipThreshold)
-                  sycl::atomic<int>(sycl::global_ptr<int>(&(data.g_MinMax->z())))
+          if (cl::sycl::fabs(data.h[data.idx(id, dp.jMin + 2)]) > dp.sshClipThreshold)
+                  cl::sycl::atomic<int>(cl::sycl::global_ptr<int>(&(data.g_MinMax->z())))
                       .fetch_add(1);
 
-          if (sycl::fabs(data.h[data.idx(id, dp.jMax - 2)]) > dp.sshClipThreshold)
-                  sycl::atomic<int>(sycl::global_ptr<int>(&(data.g_MinMax->w())))
+          if (cl::sycl::fabs(data.h[data.idx(id, dp.jMax - 2)]) > dp.sshClipThreshold)
+                  cl::sycl::atomic<int>(cl::sycl::global_ptr<int>(&(data.g_MinMax->w())))
                       .fetch_add(1);
     }
 
@@ -216,7 +215,7 @@ SYCL_EXTERNAL void runGridExtendKernel(KernelData data, sycl::nd_item<1> item_ct
 
           for( int j = dp.jMin; j <= dp.jMax; j++ ) {
 
-            if (sycl::fabs(data.h[data.idx(dp.iMin + 2, j)]) > dp.sshClipThreshold) {
+            if (cl::sycl::fabs(data.h[data.idx(dp.iMin + 2, j)]) > dp.sshClipThreshold) {
                 data.g_MinMax->x() = 1;
                 break;
             }
@@ -225,7 +224,7 @@ SYCL_EXTERNAL void runGridExtendKernel(KernelData data, sycl::nd_item<1> item_ct
 
           for( int j = dp.jMin; j <= dp.jMax; j++ ) {
 
-            if (sycl::fabs(data.h[data.idx(dp.iMax - 2, j)]) > dp.sshClipThreshold) {
+            if (cl::sycl::fabs(data.h[data.idx(dp.iMax - 2, j)]) > dp.sshClipThreshold) {
                data.g_MinMax->y() = 1;
                break;
             }
@@ -234,7 +233,7 @@ SYCL_EXTERNAL void runGridExtendKernel(KernelData data, sycl::nd_item<1> item_ct
 
           for( int i = dp.iMin; i <= dp.iMax; i++ ) {
 
-            if (sycl::fabs(data.h[data.idx(i, dp.jMin + 2)]) > dp.sshClipThreshold) {
+            if (cl::sycl::fabs(data.h[data.idx(i, dp.jMin + 2)]) > dp.sshClipThreshold) {
               data.g_MinMax->z() = 1;
               break;
             }
@@ -243,7 +242,7 @@ SYCL_EXTERNAL void runGridExtendKernel(KernelData data, sycl::nd_item<1> item_ct
 
           for( int i = dp.iMin; i <= dp.iMax; i++ ) {
 
-            if (sycl::fabs(data.h[data.idx(i, dp.jMax - 2)]) > dp.sshClipThreshold) {
+            if (cl::sycl::fabs(data.h[data.idx(i, dp.jMax - 2)]) > dp.sshClipThreshold) {
               data.g_MinMax->w() = 1;
               break;
             }

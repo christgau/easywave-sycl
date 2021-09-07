@@ -35,7 +35,6 @@
 
 /* FIXME: check header dependencies */
 #include <CL/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include "easywave.h"
 #include "ewNode.h"
 #include <stdio.h>
@@ -90,7 +89,7 @@ public:
 
 	Params params;
 
-	sycl::int4 *g_MinMax;
+	cl::sycl::int4 *g_MinMax;
 
         int le( int ij ) { return ij - params.pI; }
 	int ri( int ij ) { return ij + params.pI; }
