@@ -179,13 +179,6 @@ int main( int argc, char **argv )
 
   delete gNode;
 
-  float total_dur = 0.f;
-  for( int j = 0; j < 5; j++ ) {
-    printf_v("Duration %u: %.3f\n", j, dur[j]);
-    total_dur += dur[j];
-  }
-  printf_v("Duration total: %.3f\n",total_dur);
-
   printf_v("Runtime: %.3lf s, final domain: (%d, %d)-(%d, %d), size: %d x %d \n", diff(start, end), Jmin, Imin, Jmax, Imax, Jmax - Jmin, Imax - Imin);
   Log.print("Runtime: %.3lf s, final domain: (%d, %d)-(%d, %d), size: %d x %d", diff(start, end), Jmin, Imin, Jmax, Imax, Jmax - Jmin, Imax - Imin);
 

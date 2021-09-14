@@ -56,7 +56,7 @@ namespace zib {
 				cl::sycl::id<3> to_id, cl::sycl::id<3> from_id,
 				cl::sycl::range<3> size) {
 			cl::sycl::vector_class<cl::sycl::event> event_list;
-			
+
 			size_t to_slice = to_range.get(1) * to_range.get(0),
 				from_slice = from_range.get(1) * from_range.get(0);
 			unsigned char *to_surface = (unsigned char *)to_ptr +
@@ -72,7 +72,7 @@ namespace zib {
 					to_ptr += to_range.get(0);
 					from_ptr += from_range.get(0);
 				}
-				
+
 				to_surface += to_slice;
 				from_surface += from_slice;
 			}
@@ -144,16 +144,11 @@ CGpuNode::~CGpuNode()
         auto total = std::accumulate(kernel_duration.begin(), kernel_duration.end(), 0.0);
 
         for (int i = 0; i < kernel_duration.size(); i++) {
-            std::cout << "timing " << i << " (" << kernel_names[i] << "): "
+            std::cout << "runtime kernel " << i << " (" << kernel_names[i] << "): "
                 << std::fixed << std::setprecision(3) << kernel_duration[i] << " ms ("
                 << std::fixed << std::setprecision(3) << (kernel_duration[i] / total) << ")" << std::endl;
         }
-        std::cout << "timing_total: " << total << std::endl;
-
-        /* backwards compatibility */
-        for (int i = 0; i < NUM_DURATIONS; i++) {
-            dur[i] = kernel_duration[i];
-        }
+        std::cout << "kernels total: " << total << std::endl;
     }
 }
 
