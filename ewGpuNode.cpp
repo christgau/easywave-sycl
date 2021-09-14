@@ -203,7 +203,7 @@ int CGpuNode::copyToGPU() {
 	Params& dp = data.params;
 
 	/* align left grid boundary to a multiple of 32 with an offset 1 */
-	Jmin -= (Jmin-2) % 32;
+	Jmin -= (Jmin-2) % MEM_ALIGN;
 
 	/* fill in further fields here */
 	dp.iMin = Imin;
@@ -321,13 +321,16 @@ int CGpuNode::run() {
 
 	size_t max_wg_size = queue->get_device().get_info<cl::sycl::info::device::max_work_group_size>();
 
-	/* Using max wg size or a preferred wg_size would be better here, but causes runtime errors (CL_OUT_OF_RESOURCES) */
-	cl::sycl::range<1> boundary_workgroup_size(max_wg_size / 4); /* div by 7 works as well for CPU, but not by 6 */
+	cl::sycl::range<1> boundary_workgroup_size(max_wg_size);
 	cl::sycl::range<1> boundary_size(INT_CEIL(std::max(dp.nI, dp.nJ), boundary_workgroup_size[0]));
 
-	/* Originally we had n = 128 threads, 32 for x and 128/x = 4 threads, hardcoded. So do this again here, to avoid runtime errors */
-	//cl::sycl::range<2> compute_wnd_workgroup_size(4, 32);
+#if defined(SYCL_LANGUAGE_VERSION) && defined (__INTEL_LLVM_COMPILER)
+	/* For Intel, prevent the nd_range_error: "Non-uniform work-groups are not supported by the target device -54 (CL_INVALID_WORK_GROUP_SIZE))". */
+	/* Originally we had n = 128 threads, 32 for x and 128/x = 4 threads, hardcoded in the CUDA code. */
+	cl::sycl::range<2> compute_wnd_workgroup_size(4, 32);
+#else
 	cl::sycl::range<2> compute_wnd_workgroup_size(32, 32);
+#endif
 	cl::sycl::range<2> compute_wnd_size(
 		INT_CEIL(NI, compute_wnd_workgroup_size[0]),
 		INT_CEIL(NJ, compute_wnd_workgroup_size[1])
@@ -395,7 +398,7 @@ int CGpuNode::run() {
 	/* TODO: respect alignments from device in window expansion (Preferred work group size multiple ?!) */
 	if (MinMax.x()) Imin = dp.iMin = std::max(dp.iMin - 1, 2);
 	if (MinMax.y()) Imax = dp.iMax = std::min(dp.iMax + 1, dp.nI - 1);
-	if (MinMax.z()) Jmin = dp.jMin = std::max(dp.jMin - 32, 2);
+	if (MinMax.z()) Jmin = dp.jMin = std::max(dp.jMin - MEM_ALIGN, 2);
 	if (MinMax.w()) Jmax = dp.jMax = std::min(dp.jMax + 1, dp.nJ - 1);
 
 	for( int j = 0; have_profiling && j < NUM_TIMED_KERNELS; j++ ) {

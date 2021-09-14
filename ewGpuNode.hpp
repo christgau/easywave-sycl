@@ -110,6 +110,9 @@ protected:
 	/* specifies if data was already copied in the current calculation step */
 	bool copied;
 
+	/* from original CUDA code: memory is aligned to warp size */
+	constexpr int MEM_ALIGN = 32;
+
 	static constexpr int NUM_KERNELS = 7;
 	static constexpr int NUM_TIMED_KERNELS = 7;
 
