@@ -1,0 +1,6 @@
+# for open source Intel LLVM with CUDA support
+SYCL_TARGETS=nvptx64-nvidia-cuda
+
+CXX=clang++
+CXXFLAGS=-O3 -march=native -mtune=native -ftree-vectorize -ffast-math -Rpass=loop-vectorize -cl-fast-relaxed-math -fvectorize \
+	-fsycl -fsycl-unnamed-lambda -fsycl-targets=$(SYCL_TARGETS)
