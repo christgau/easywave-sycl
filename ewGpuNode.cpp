@@ -414,10 +414,8 @@ int CGpuNode::run() {
 	if (MinMax.w()) Jmax = dp.jMax = std::min(dp.jMax + 1, dp.nJ - 1);
 
 	for( int j = 0; have_profiling && j < NUM_TIMED_KERNELS; j++ ) {
-#ifndef __HIPSYCL__
 		kernel_duration[j] += (kernel_events[j].get_profiling_info<cl::sycl::info::event_profiling::command_end>()
 			- kernel_events[j].get_profiling_info<cl::sycl::info::event_profiling::command_start>()) / 1.0E+6;
-#endif
 	}
 
 	/* data has changed now -> copy becomes necessary */
