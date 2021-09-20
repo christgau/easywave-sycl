@@ -111,6 +111,11 @@ CGpuNode::CGpuNode() {
 	std::cout << "Selected device: " << dev.get_info<cl::sycl::info::device::name>() << std::endl;
 	std::cout << "Profiling supported: " << dev.get_info<cl::sycl::info::device::queue_profiling>() << std::endl;
 	std::cout << "Maximum Work group size: " << dev.get_info<cl::sycl::info::device::max_work_group_size>() << std::endl;
+	std::cout << "USM explicit allocations supported: " << dev.has(cl::sycl::aspect::usm_device_allocations) << std::endl;
+
+	if (!dev.has(cl::sycl::aspect::usm_device_allocations)) {
+		throw std::runtime_error("Device does not support USM explicit allications.");
+	}
 
 	auto kernels = dev.get_info<cl::sycl::info::device::built_in_kernels>();
 	std::cout << "Built-in kernels: " << (kernels.size() ? std::to_string(kernels.size()) : "None.") << std::endl;
