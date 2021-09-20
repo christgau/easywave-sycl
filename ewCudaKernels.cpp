@@ -34,6 +34,10 @@
 #include "ewGpuNode.hpp"
 #include "ewCudaKernels.hpp"
 
+#ifdef USE_STD_MATH
+#include <cmath>
+#endif
+
 SYCL_EXTERNAL void waveUpdate(KernelData data, cl::sycl::nd_item<2> item_ct1)
 {
   Params& dp = data.params;
@@ -85,6 +89,11 @@ SYCL_EXTERNAL void fluxUpdate(KernelData data, cl::sycl::nd_item<2> item_ct1)
 }
 
 #define SQR(x)   ((x) * (x))
+#ifdef USE_STD_MATH
+#define SQRT(x)  std::sqrt(x)
+#else
+#define SQRT(x)  cl::sycl::sqrt(x)
+#endif
 
 SYCL_EXTERNAL void waveBoundary(KernelData data, cl::sycl::nd_item<1> item_ct1)
 {
@@ -96,45 +105,45 @@ SYCL_EXTERNAL void waveBoundary(KernelData data, cl::sycl::nd_item<1> item_ct1)
 
 	if( dp.jMin <= 2 && id <= dp.nI-1 ) {
 	  ij = dt.idx(id,1);
-	  dt.h[ij] = cl::sycl::sqrt( SQR(dt.fN[ij]) + 0.25f*SQR((dt.fM[ij] + dt.fM[dt.le(ij)])) )*dt.cB1[id-1];
+	  dt.h[ij] = SQRT( SQR(dt.fN[ij]) + 0.25f*SQR((dt.fM[ij] + dt.fM[dt.le(ij)])) )*dt.cB1[id-1];
 	  if( dt.fN[ij] > 0 ) dt.h[ij] = -dt.h[ij];
-	}
-
-	if( dp.jMax >= dp.nJ - 1 && id <= dp.nI-1 ) {
-	  ij = dt.idx(id,dp.nJ);
-	  dt.h[ij] = cl::sycl::sqrt( SQR(dt.fN[dt.dn(ij)]) + 0.25f*SQR((dt.fM[ij] + dt.fM[dt.dn(ij)])) )*dt.cB3[id-1];
-	  if( dt.fN[dt.dn(ij)] < 0 ) dt.h[ij] = -dt.h[ij];
 	}
 
 	if( dp.iMin <= 2 && id <= dp.nJ-1 ) {
 	  ij = dt.idx(1,id);
-	  dt.h[ij] = cl::sycl::sqrt( SQR(dt.fM[ij]) + 0.25f*SQR((dt.fN[ij] + dt.fN[dt.dn(ij)])) )*dt.cB2[id-1];
+	  dt.h[ij] = SQRT( SQR(dt.fM[ij]) + 0.25f*SQR((dt.fN[ij] + dt.fN[dt.dn(ij)])) )*dt.cB2[id-1];
 	  if( dt.fM[ij] > 0 ) dt.h[ij] = -dt.h[ij];
 	}
 
-	if( dp.iMax <= dp.nI -1 && id <= dp.nJ-1 ) {
+	if( dp.jMax >= dp.nJ - 1 && id <= dp.nI-1 ) {
+	  ij = dt.idx(id,dp.nJ);
+	  dt.h[ij] = SQRT( SQR(dt.fN[dt.dn(ij)]) + 0.25f*SQR((dt.fM[ij] + dt.fM[dt.dn(ij)])) )*dt.cB3[id-1];
+	  if( dt.fN[dt.dn(ij)] < 0 ) dt.h[ij] = -dt.h[ij];
+	}
+
+	if( dp.iMax >= dp.nI -1 && id <= dp.nJ-1 ) {
 	  ij = dt.idx(dp.nI,id);
-	  dt.h[ij] = cl::sycl::sqrt( SQR(dt.fM[dt.le(ij)]) + 0.25f*SQR((dt.fN[ij] + dt.fN[dt.dn(ij)])) )*dt.cB4[id-1];
+	  dt.h[ij] = SQRT( SQR(dt.fM[dt.le(ij)]) + 0.25f*SQR((dt.fN[ij] + dt.fN[dt.dn(ij)])) )*dt.cB4[id-1];
 	  if( dt.fM[dt.le(ij)] < 0 ) dt.h[ij] = -dt.h[ij];
 	}
 
 	if( id == 2 && dp.jMin <= 2 ) {
 	  ij = dt.idx(1,1);
-	  dt.h[ij] = cl::sycl::sqrt( SQR(dt.fM[ij]) + SQR(dt.fN[ij]) )*dt.cB1[0];
+	  dt.h[ij] = SQRT( SQR(dt.fM[ij]) + SQR(dt.fN[ij]) )*dt.cB1[0];
 	  if( dt.fN[ij] > 0 ) dt.h[ij] = -dt.h[ij];
 
 	  ij = dt.idx(dp.nI,1);
-	  dt.h[ij] = cl::sycl::sqrt( SQR(dt.fM[dt.le(ij)]) + SQR(dt.fN[ij]) )*dt.cB1[dp.nI-1];
+	  dt.h[ij] = SQRT( SQR(dt.fM[dt.le(ij)]) + SQR(dt.fN[ij]) )*dt.cB1[dp.nI-1];
 	  if( dt.fN[ij] > 0 ) dt.h[ij] = -dt.h[ij];
 	}
 
 	if( id == 2 && dp.jMin >= dp.nJ - 1 ) {
 	  ij = dt.idx(1,dp.nJ);
-	  dt.h[ij] = cl::sycl::sqrt( SQR(dt.fM[ij]) + SQR(dt.fN[dt.dn(ij)]) )*dt.cB3[0];
+	  dt.h[ij] = SQRT( SQR(dt.fM[ij]) + SQR(dt.fN[dt.dn(ij)]) )*dt.cB3[0];
 	  if( dt.fN[dt.dn(ij)] < 0 ) dt.h[ij] = -dt.h[ij];
 
 	  ij = dt.idx(dp.nI,dp.nJ);
-	  dt.h[ij] = cl::sycl::sqrt( SQR(dt.fM[dt.le(ij)]) + SQR(dt.fN[dt.dn(ij)]) )*dt.cB3[dp.nI-1];
+	  dt.h[ij] = SQRT( SQR(dt.fM[dt.le(ij)]) + SQR(dt.fN[dt.dn(ij)]) )*dt.cB3[dp.nI-1];
 	  if( dt.fN[dt.dn(ij)] < 0 ) dt.h[ij] = -dt.h[ij];
 	}
 }
