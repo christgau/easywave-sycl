@@ -38,6 +38,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <numeric>
+#include <vector>
 
 /* memory helpers, inspired by dpct headers */
 #define PITCH_DEFAULT_ALIGN(x) (((x) + 31) & ~(0x1F))
@@ -47,15 +48,21 @@ namespace zib {
 		static inline void *malloc_pitch(size_t &pitch, size_t x, size_t y, cl::sycl::queue &q)
 		{
 			pitch = PITCH_DEFAULT_ALIGN(x);
-			return cl::sycl::malloc_device(pitch * y, q.get_device(), q.get_context());
+			void *retval = cl::sycl::malloc_device(pitch * y, q.get_device(), q.get_context());
+
+			if (!retval) {
+				throw std::runtime_error("Could not allocate 2D device memory");
+			}
+
+			return retval;
 		}
 
-		static inline cl::sycl::vector_class<cl::sycl::event> memcpy(
+		static inline std::vector<cl::sycl::event> memcpy(
 				cl::sycl::queue &q, void *to_ptr, const void *from_ptr,
 				cl::sycl::range<3> to_range, cl::sycl::range<3> from_range,
 				cl::sycl::id<3> to_id, cl::sycl::id<3> from_id,
 				cl::sycl::range<3> size) {
-			cl::sycl::vector_class<cl::sycl::event> event_list;
+			std::vector<cl::sycl::event> event_list;
 
 			size_t to_slice = to_range.get(1) * to_range.get(0),
 				from_slice = from_range.get(1) * from_range.get(0);
@@ -79,7 +86,7 @@ namespace zib {
 			return event_list;
 		}
 
-		static inline cl::sycl::vector_class<cl::sycl::event> memcpy(
+		static inline std::vector<cl::sycl::event> memcpy(
 				cl::sycl::queue &q,
 				void *to_ptr, size_t to_pitch,
 				const void *from_ptr, size_t from_pitch,
