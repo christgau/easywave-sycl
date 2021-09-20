@@ -34,9 +34,11 @@
 #ifndef EW_KERNELS_H
 #define EW_KERNELS_H
 
-#ifdef __HIPSYCL__
+#ifdef USE_INLINE_KERNELS
+/* see below for rationale */
+#undef SYCL_EXTERNAL
 #define SYCL_EXTERNAL static
-#endif /* __HIPSYCL__ */
+#endif /* USE_INLINE_KERNELS */
 
 SYCL_EXTERNAL void waveUpdate(KernelData data, cl::sycl::nd_item<2> item_ct1);
 SYCL_EXTERNAL void waveBoundary(KernelData data, cl::sycl::nd_item<1> item_ct1);
@@ -44,11 +46,11 @@ SYCL_EXTERNAL void fluxUpdate(KernelData data, cl::sycl::nd_item<2> item_ct1);
 SYCL_EXTERNAL void fluxBoundary(KernelData data, cl::sycl::nd_item<1> item_ct1);
 SYCL_EXTERNAL void gridExtend(KernelData data, cl::sycl::nd_item<1> item_ct1);
 
-#ifdef __HIPSYCL__
+#ifdef USE_INLINE_KERNELS
 /* hipSYCL does not support SYCL_EXTERNAL so kernels must be contained in the same
  * compilation unit where they are called. Thus, we do a dirty include of the source
  * file here (see also https://github.com/illuhad/hipSYCL/issues/604) */
 #include "ewCudaKernels.cpp"
-#endif /* __HIPSYCL__ */
+#endif /* USE_INLINE_KERNELS */
 
 #endif /* EW_KERNELS_H */
