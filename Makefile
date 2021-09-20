@@ -20,8 +20,7 @@ ifeq ($(strip $(INLINE_KERNELS)),)
 EXTRA_SOURCES=ewCudaKernels.cpp
 endif
 
-SOURCES=$(BASE_SOURCES) $(EXTRA_SOURCES)
-
+SOURCES=$(EXTRA_SOURCES) $(BASE_SOURCES)
 OBJECTS=$(patsubst %.cpp,%.o,$(SOURCES))
 
 easywave: $(OBJECTS)
