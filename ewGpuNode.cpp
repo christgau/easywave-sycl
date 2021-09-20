@@ -346,7 +346,7 @@ int CGpuNode::run() {
 		cgh.parallel_for(
 			cl::sycl::nd_range<2>(compute_wnd_size, compute_wnd_workgroup_size),
 			[=](cl::sycl::nd_item<2> item) {
-				runWaveUpdateKernel(kernel_data, item);
+				waveUpdate(kernel_data, item);
 			});
 	});
 
@@ -356,7 +356,7 @@ int CGpuNode::run() {
 		cgh.parallel_for(
 			cl::sycl::nd_range<1>(boundary_size, boundary_workgroup_size),
 			[=](cl::sycl::nd_item<1> item) {
-				runWaveBoundaryKernel(kernel_data, item);
+				waveBoundary(kernel_data, item);
 			});
 	});
 
@@ -366,7 +366,7 @@ int CGpuNode::run() {
 		cgh.parallel_for(
 			cl::sycl::nd_range<2>(compute_wnd_size, compute_wnd_workgroup_size),
 			[=](cl::sycl::nd_item<2> item) {
-				runFluxUpdateKernel(kernel_data, item);
+				fluxUpdate(kernel_data, item);
 			});
 	});
 
@@ -375,7 +375,7 @@ int CGpuNode::run() {
 	    auto kernel_data = data;
 		cgh.parallel_for(cl::sycl::nd_range<1>(boundary_size, boundary_workgroup_size),
 			[=](cl::sycl::nd_item<1> item) {
-				runFluxBoundaryKernel(kernel_data, item);
+				fluxBoundary(kernel_data, item);
 			});
 	});
 
@@ -386,7 +386,7 @@ int CGpuNode::run() {
 	    auto kernel_data = data;
 		cgh.parallel_for(cl::sycl::nd_range<1>(boundary_size, boundary_workgroup_size),
 			[=](cl::sycl::nd_item<1> item) {
-				runGridExtendKernel(kernel_data, item);
+				gridExtend(kernel_data, item);
 			});
 	});
 	kernel_events[KERNEL_EXTEND].wait();

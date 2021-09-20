@@ -34,7 +34,7 @@
 #include "ewGpuNode.hpp"
 #include "ewCudaKernels.hpp"
 
-SYCL_EXTERNAL void runWaveUpdateKernel(KernelData data, cl::sycl::nd_item<2> item_ct1)
+SYCL_EXTERNAL void waveUpdate(KernelData data, cl::sycl::nd_item<2> item_ct1)
 {
   Params& dp = data.params;
 
@@ -63,7 +63,7 @@ SYCL_EXTERNAL void runWaveUpdateKernel(KernelData data, cl::sycl::nd_item<2> ite
   }
 }
 
-SYCL_EXTERNAL void runFluxUpdateKernel(KernelData data, cl::sycl::nd_item<2> item_ct1)
+SYCL_EXTERNAL void fluxUpdate(KernelData data, cl::sycl::nd_item<2> item_ct1)
 {
   Params& dp = data.params;
 
@@ -86,7 +86,7 @@ SYCL_EXTERNAL void runFluxUpdateKernel(KernelData data, cl::sycl::nd_item<2> ite
 
 #define SQR(x)   ((x) * (x))
 
-SYCL_EXTERNAL void runWaveBoundaryKernel(KernelData data, cl::sycl::nd_item<1> item_ct1)
+SYCL_EXTERNAL void waveBoundary(KernelData data, cl::sycl::nd_item<1> item_ct1)
 {
     KernelData& dt = data;
     Params& dp = data.params;
@@ -139,7 +139,7 @@ SYCL_EXTERNAL void runWaveBoundaryKernel(KernelData data, cl::sycl::nd_item<1> i
 	}
 }
 
-SYCL_EXTERNAL void runFluxBoundaryKernel(KernelData data, cl::sycl::nd_item<1> item_ct1)
+SYCL_EXTERNAL void fluxBoundary(KernelData data, cl::sycl::nd_item<1> item_ct1)
 {
     KernelData& dt = data;
     Params& dp = data.params;
@@ -178,7 +178,7 @@ SYCL_EXTERNAL void runFluxBoundaryKernel(KernelData data, cl::sycl::nd_item<1> i
 	}
 }
 
-SYCL_EXTERNAL void runGridExtendKernel(KernelData data, cl::sycl::nd_item<1> item_ct1)
+SYCL_EXTERNAL void gridExtend(KernelData data, cl::sycl::nd_item<1> item_ct1)
 {
     Params& dp = data.params;
 
