@@ -91,7 +91,7 @@ public:
 
 	cl::sycl::int4 *g_MinMax;
 
-        int le( int ij ) { return ij - params.pI; }
+	int le( int ij ) { return ij - params.pI; }
 	int ri( int ij ) { return ij + params.pI; }
 	int up( int ij ) { return ij + 1; }
 	int dn( int ij ) { return ij - 1; }
@@ -137,8 +137,11 @@ protected:
 		"memcpy_extent"
 	}};
 
-	bool have_profiling;
-	cl::sycl::queue *queue, *default_queue;
+	bool is_profiling_enabled;
+
+    cl::sycl::device root_device;
+    cl::sycl::queue root_queue;
+    std::vector<cl::sycl::queue> queues;
 
 public:
 	CGpuNode();

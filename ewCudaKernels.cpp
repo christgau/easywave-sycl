@@ -38,12 +38,12 @@
 #include <cmath>
 #endif
 
-SYCL_EXTERNAL void waveUpdate(KernelData data, cl::sycl::nd_item<2> item_ct1)
+SYCL_EXTERNAL void waveUpdate(KernelData data, const cl::sycl::nd_item<2> item_ct1, const cl::sycl::id<2> offset)
 {
   Params& dp = data.params;
 
-  int i = item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + dp.iMin;
-  int j = item_ct1.get_group(1) * item_ct1.get_local_range().get(1) + item_ct1.get_local_id(1) + dp.jMin;
+  int i = item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + dp.iMin + offset[0];
+  int j = item_ct1.get_group(1) * item_ct1.get_local_range().get(1) + item_ct1.get_local_id(1) + dp.jMin + offset[1];
   int ij = data.idx(i,j);
   float absH;
 
@@ -63,16 +63,17 @@ SYCL_EXTERNAL void waveUpdate(KernelData data, cl::sycl::nd_item<2> item_ct1)
 
     if( dp.sshArrivalThreshold && data.tArr[ij] < 0 && absH > dp.sshArrivalThreshold )
 	  data.tArr[ij] = dp.mTime;
-	  data.h[ij] = hh;
+
+    data.h[ij] = hh;
   }
 }
 
-SYCL_EXTERNAL void fluxUpdate(KernelData data, cl::sycl::nd_item<2> item_ct1)
+SYCL_EXTERNAL void fluxUpdate(KernelData data, const cl::sycl::nd_item<2> item_ct1, cl::sycl::id<2> offset)
 {
   Params& dp = data.params;
 
-  int i = item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + dp.iMin;
-  int j = item_ct1.get_group(1) * item_ct1.get_local_range().get(1) + item_ct1.get_local_id(1) + dp.jMin;
+  int i = item_ct1.get_group(0) * item_ct1.get_local_range().get(0) + item_ct1.get_local_id(0) + dp.iMin + offset[0];
+  int j = item_ct1.get_group(1) * item_ct1.get_local_range().get(1) + item_ct1.get_local_id(1) + dp.jMin + offset[1];
   int ij = data.idx(i,j);
 
   if( i <= dp.iMax && j <= dp.jMax && data.d[ij] != 0 ) {
@@ -95,7 +96,7 @@ SYCL_EXTERNAL void fluxUpdate(KernelData data, cl::sycl::nd_item<2> item_ct1)
 #define SQRT(x)  cl::sycl::sqrt(x)
 #endif
 
-SYCL_EXTERNAL void waveBoundary(KernelData data, cl::sycl::nd_item<1> item_ct1)
+SYCL_EXTERNAL void waveBoundary(KernelData data, const cl::sycl::nd_item<1> item_ct1)
 {
     KernelData& dt = data;
     Params& dp = data.params;
@@ -148,7 +149,7 @@ SYCL_EXTERNAL void waveBoundary(KernelData data, cl::sycl::nd_item<1> item_ct1)
 	}
 }
 
-SYCL_EXTERNAL void fluxBoundary(KernelData data, cl::sycl::nd_item<1> item_ct1)
+SYCL_EXTERNAL void fluxBoundary(KernelData data, const cl::sycl::nd_item<1> item_ct1)
 {
     KernelData& dt = data;
     Params& dp = data.params;
@@ -187,7 +188,7 @@ SYCL_EXTERNAL void fluxBoundary(KernelData data, cl::sycl::nd_item<1> item_ct1)
 	}
 }
 
-SYCL_EXTERNAL void gridExtend(KernelData data, cl::sycl::nd_item<1> item_ct1)
+SYCL_EXTERNAL void gridExtend(KernelData data, const cl::sycl::nd_item<1> item_ct1)
 {
     Params& dp = data.params;
 
