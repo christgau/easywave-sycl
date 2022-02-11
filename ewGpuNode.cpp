@@ -190,6 +190,7 @@ CGpuNode::CGpuNode() :
         queues.push_back(sycl::queue(root_device, prop_list));
     }
 
+    std::cout << "SubDev[0]'s maximum work group size: " << queues.front().get_device().get_info<cl::sycl::info::device::max_work_group_size>() << std::endl;
     std::cout << "using " << queues.size() << " queues" << std::endl;
 
 	for( int i = 0; i < NUM_TIMED_KERNELS; i++ ) { dur[i] = 0.0; }
@@ -315,7 +316,7 @@ int CGpuNode::copyIntermediate() {
 	Params& dp = data.params;
 
 	zib::sycl::memcpy(root_queue, h, dp.nJ * sizeof(float), data.h + dp.lpad, pitch, dp.nJ * sizeof(float), dp.nI);
-	root_queue.wait_and_throw();
+    root_queue.wait_and_throw();
 
 	/* copy finished */
 	copied = true;
@@ -379,7 +380,7 @@ int CGpuNode::run() {
 
 	size_t max_wg_size = root_queue.get_device().get_info<cl::sycl::info::device::max_work_group_size>();
 
-	cl::sycl::range<1> boundary_workgroup_size(max_wg_size);
+	cl::sycl::range<1> boundary_workgroup_size(max_wg_size/* / 32*/);
 	cl::sycl::range<1> boundary_size(INT_CEIL(std::max(dp.nI, dp.nJ), boundary_workgroup_size[0]));
 
 #if defined(SYCL_LANGUAGE_VERSION) && defined (__INTEL_LLVM_COMPILER)
@@ -407,77 +408,64 @@ int CGpuNode::run() {
         cw_subsizes.push_back(cl::sycl::range<2>(compute_wnd_size[0] / num_used_queues * (i + 1), compute_wnd_size[1]));
     }
 
+    auto kernel_data = data;
+
     /* launch kernels per (sub)device */
     for (size_t queue_idx = 0; queue_idx < num_used_queues; queue_idx++) {
-    	kernel_events[KERNEL_WAVE_UPDATE].push_back(queues[queue_idx].submit([&](cl::sycl::handler &cgh) {
-            auto kernel_data = data;
 
-            cl::sycl::id<2> offset = cw_offsets[queue_idx];
-            cl::sycl::range<2> subsize = cw_subsizes[queue_idx];
+        cl::sycl::id<2> offset = cw_offsets[queue_idx];
+        cl::sycl::range<2> subsize = cw_subsizes[queue_idx];
 
-	    	cgh.parallel_for(
-		    	cl::sycl::nd_range<2>(subsize, compute_wnd_workgroup_size),
-    			[=](cl::sycl::nd_item<2> item) {
-	    			waveUpdate(kernel_data, item, offset);
-		    	});
-    	}));
+    	kernel_events[KERNEL_WAVE_UPDATE].push_back(queues[queue_idx].parallel_for(
+	    	cl::sycl::nd_range<2>(subsize, compute_wnd_workgroup_size),
+			[=](cl::sycl::nd_item<2> item) {
+    				waveUpdate(kernel_data, item, offset);
+	   	}));
     }
 
-    /* the lightweight boundary kernels are executed by a single subdevice only */
-    kernel_events[KERNEL_WAVE_BOUND].push_back(queues.front().submit([&](cl::sycl::handler &cgh) {
-        auto kernel_data = data;
-
-        cgh.depends_on(kernel_events[KERNEL_WAVE_UPDATE]); // wait for all wave updates to finish
-        cgh.parallel_for(
-            cl::sycl::nd_range<1>(boundary_size, boundary_workgroup_size),
-            [=](cl::sycl::nd_item<1> item) {
-                waveBoundary(kernel_data, item);
-            });
+    /* the lightweight boundary kernels are executed by a single subdevice only (do not use the root queue here) */
+    kernel_events[KERNEL_WAVE_BOUND].push_back(queues[0].parallel_for(
+        cl::sycl::nd_range<1>(boundary_size, boundary_workgroup_size),
+        kernel_events[KERNEL_WAVE_UPDATE],
+        [=](cl::sycl::nd_item<1> item) {
+            waveBoundary(kernel_data, item);
     }));
-
 
     for (size_t queue_idx = 0; queue_idx < num_used_queues; queue_idx++) {
-    	kernel_events[KERNEL_FLUX_UPDATE].push_back(queues[queue_idx].submit([&](cl::sycl::handler &cgh) {
-            auto kernel_data = data;
-            cl::sycl::id<2> offset = cw_offsets[queue_idx];
+        cl::sycl::id<2> offset = cw_offsets[queue_idx];
+        cl::sycl::range<2> subsize = cw_subsizes[queue_idx];
 
-	    	cgh.depends_on(kernel_events[KERNEL_WAVE_BOUND]); /* wait for all/the single boundary kernel */
-    		cgh.parallel_for(
-	    		cl::sycl::nd_range<2>(compute_wnd_size, compute_wnd_workgroup_size),
-		    	[=](cl::sycl::nd_item<2> item) {
-			    	fluxUpdate(kernel_data, item, offset);
-    			});
-	    }));
+    	kernel_events[KERNEL_FLUX_UPDATE].push_back(queues[queue_idx].parallel_for(
+	    	cl::sycl::nd_range<2>(subsize, compute_wnd_workgroup_size),
+			kernel_events[KERNEL_WAVE_BOUND],
+   			[=](cl::sycl::nd_item<2> item) {
+			    fluxUpdate(kernel_data, item, offset);
+	   	}));
     }
 
-    /* single device only */
-    kernel_events[KERNEL_FLUX_BOUND].push_back(queues.front().submit([&](cl::sycl::handler &cgh) {
-        auto kernel_data = data;
-
-        cgh.depends_on(kernel_events[KERNEL_FLUX_UPDATE]);
-        cgh.parallel_for(cl::sycl::nd_range<1>(boundary_size, boundary_workgroup_size),
-            [=](cl::sycl::nd_item<1> item) {
-                fluxBoundary(kernel_data, item);
-            });
+    /* single subdevice(s) only */
+    kernel_events[KERNEL_FLUX_BOUND].push_back(queues[0].parallel_for(
+        cl::sycl::nd_range<1>(boundary_size, boundary_workgroup_size),
+	        kernel_events[KERNEL_FLUX_UPDATE],
+        	[=](cl::sycl::nd_item<1> item) {
+	            fluxBoundary(kernel_data, item);
     }));
 
-	kernel_events[KERNEL_MEMSET].push_back(root_queue.memset(data.g_MinMax, 0, sizeof(cl::sycl::int4)));
+    kernel_events[KERNEL_MEMSET].push_back(queues.back().memset(data.g_MinMax, 0, sizeof(cl::sycl::int4)));
     std::vector<cl::sycl::event> extend_deps{ kernel_events[KERNEL_FLUX_BOUND] };
     extend_deps.push_back(kernel_events[KERNEL_MEMSET].front());
 
-    kernel_events[KERNEL_EXTEND].push_back(root_queue.submit([&](cl::sycl::handler &cgh) {
-        auto kernel_data = data;
-
-        cgh.depends_on(extend_deps);
-        cgh.parallel_for(cl::sycl::nd_range<1>(boundary_size, boundary_workgroup_size),
-            [=](cl::sycl::nd_item<1> item) {
-                gridExtend(kernel_data, item);
-            });
-    }));
+    kernel_events[KERNEL_EXTEND].push_back(queues[0].parallel_for(
+        cl::sycl::nd_range<1>(boundary_size, boundary_workgroup_size),
+        extend_deps,
+        [=](cl::sycl::nd_item<1> item) {
+             gridExtend(kernel_data, item);
+        }
+    ));
 
 	cl::sycl::int4 MinMax;
 	kernel_events[KERNEL_MEMCPY].push_back(root_queue.memcpy(&MinMax, data.g_MinMax, sizeof(cl::sycl::int4), kernel_events[KERNEL_EXTEND]));
-	kernel_events[KERNEL_MEMCPY].front().wait();
+	sycl::event::wait(kernel_events[KERNEL_MEMCPY]);
 
 	/* TODO: respect alignments from device in window expansion (Preferred work group size multiple ?!) */
 	if (MinMax.x()) Imin = dp.iMin = std::max(dp.iMin - 1, 2);
@@ -485,9 +473,7 @@ int CGpuNode::run() {
 	if (MinMax.z()) Jmin = dp.jMin = std::max(dp.jMin - MEM_ALIGN, 2);
 	if (MinMax.w()) Jmax = dp.jMax = std::min(dp.jMax + 1, dp.nJ - 1);
 
-	kernel_events[KERNEL_WAVE_UPDATE].front().wait();
-
-	for( int i = 0; is_profiling_enabled && i < /*NUM_TIMED_KERNELS*/ KERNEL_WAVE_UPDATE; i++ ) {
+	for( int i = 0; is_profiling_enabled && i < NUM_TIMED_KERNELS; i++ ) {
         std::vector<float> durations;
         for(const auto& e: kernel_events[i]) {
             durations.push_back(

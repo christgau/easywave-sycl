@@ -30,6 +30,7 @@
  * limitations under the Licence.
  */
 #include <CL/sycl.hpp>
+#include "ewGpuNode.hpp"
 
 #ifndef EW_KERNELS_H
 #define EW_KERNELS_H
