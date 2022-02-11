@@ -180,10 +180,13 @@ CGpuNode::CGpuNode() :
             subdevs.resize(max_subdev_count);
         }
 
+        common_ctx = cl::sycl::context(subdevs);
+
         for (const auto &subdev: subdevs) {
-            queues.push_back(sycl::queue(subdev, prop_list));
+            queues.push_back(sycl::queue(common_ctx, subdev, prop_list));
         }
     } else {
+        common_ctx = root_queue.get_context();
         queues.push_back(sycl::queue(root_device, prop_list));
     }
 

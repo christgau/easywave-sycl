@@ -142,6 +142,8 @@ protected:
     cl::sycl::device root_device;
     cl::sycl::queue root_queue;
     std::vector<cl::sycl::queue> queues;
+    /* common context for created subdevices (if any) */
+    cl::sycl::context common_ctx;
 
     bool use_subdevices;
     size_t max_subdev_count;
