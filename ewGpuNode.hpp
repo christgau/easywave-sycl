@@ -143,6 +143,9 @@ protected:
     cl::sycl::queue root_queue;
     std::vector<cl::sycl::queue> queues;
 
+    bool use_subdevices;
+    size_t max_subdev_count;
+
 public:
 	CGpuNode();
 	~CGpuNode();

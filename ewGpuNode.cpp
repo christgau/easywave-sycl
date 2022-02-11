@@ -146,20 +146,26 @@ CGpuNode::CGpuNode() :
 
     root_queue = sycl::queue(root_device, prop_list);
 
+    use_subdevices = getenv("EW_USE_SUBDEVS") != nullptr;
+    if (getenv("EW_MAX_SUBDEVS") != nullptr) {
+        max_subdev_count = std::stoi(getenv("EW_MAX_SUBDEVS"));
+        if (max_subdev_count < 1) {
+            throw std::runtime_error("invalid subdevice count " + std::string(getenv("EW_MAX_SUBDEVS")));
+        }
+    } else {
+        max_subdev_count = 0;
+    }
+
     /* create queues for subdevices or use queue of root device if not subdevices are available */
     size_t num_sub_devs = root_device.get_info<sycl::info::device::partition_max_sub_devices>();
-    if (num_sub_devs > 0 && false) {
+    if (num_sub_devs > 0 && use_subdevices) {
         std::vector<sycl::info::partition_property> part_props = root_device.get_info<sycl::info::device::partition_properties>();
         std::vector<sycl::device> subdevs;
 
         /* prefer equal partitioning over affinity/numa partitioning */
         if (zib::in_vec(sycl::info::partition_property::partition_equally, part_props)) {
-            size_t part_count = num_sub_devs;
-
-            /* CPU hack */
-            if (root_device.get_info<sycl::info::device::device_type>() == sycl::info::device_type::cpu) {
-                part_count = std::max(part_count / 2ULL, 1ULL);
-            }
+            size_t max_compute_units = root_device.get_info<sycl::info::device::max_compute_units>();
+            size_t part_count = std::max(max_compute_units / num_sub_devs, 1UL);
 
             std::cout << "partition_equally to " << part_count << std::endl;
             subdevs = root_device.create_sub_devices<sycl::info::partition_property::partition_equally>(part_count);
@@ -168,6 +174,10 @@ CGpuNode::CGpuNode() :
             subdevs = root_device.create_sub_devices<sycl::info::partition_property::partition_by_affinity_domain>(sycl::info::partition_affinity_domain::next_partitionable);
         } else {
             throw std::runtime_error("Unsupported partitioning type.");
+        }
+
+        if (max_subdev_count > 0 && subdevs.size() > max_subdev_count) {
+            subdevs.resize(max_subdev_count);
         }
 
         for (const auto &subdev: subdevs) {
