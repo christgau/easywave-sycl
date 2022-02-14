@@ -370,7 +370,7 @@ int CGpuNode::freeMem()
 	return 0;
 }
 
-#define INT_CEIL(x, n) ((((x) + (n)-1) / (n)) * (n))
+#define INT_DIV_CEIL(x, n) ((((x) + (n)-1) / (n)) * (n))
 
 int CGpuNode::run()
 {
@@ -381,8 +381,8 @@ int CGpuNode::run()
 
 	size_t max_wg_size = root_queue.get_device().get_info<cl::sycl::info::device::max_work_group_size>();
 
-	cl::sycl::range<1> boundary_workgroup_size(max_wg_size /* / 32*/);
-	cl::sycl::range<1> boundary_size(INT_CEIL(std::max(dp.nI, dp.nJ), boundary_workgroup_size[0]));
+	cl::sycl::range<1> boundary_workgroup_size(max_wg_size);
+	cl::sycl::range<1> boundary_size(INT_DIV_CEIL(std::max(dp.nI, dp.nJ), boundary_workgroup_size[0]));
 
 #if defined(SYCL_LANGUAGE_VERSION) && defined(__INTEL_LLVM_COMPILER)
 	/* For Intel, prevent the nd_range_error: "Non-uniform work-groups are not supported by the target device -54
@@ -392,21 +392,25 @@ int CGpuNode::run()
 #else
 	cl::sycl::range<2> compute_wnd_workgroup_size(32, 32);
 #endif
-	cl::sycl::range<2> compute_wnd_size(INT_CEIL(NI, compute_wnd_workgroup_size[0]), /* y */
-	    INT_CEIL(NJ, compute_wnd_workgroup_size[1])					 /* x */
-	);
 
 	dp.mTime = Par.time;
 
-	std::array<std::vector<cl::sycl::event>, NUM_KERNELS> kernel_events;
-	std::vector<cl::sycl::range<2>> cw_subsizes;
 	std::vector<cl::sycl::id<2>> cw_offsets;
+	cl::sycl::range<2> queue_wnd_size(0, 0);
 
-	/* split work */
-	size_t num_used_queues = queues.size();
-	for (size_t i = 0; i < num_used_queues; i++) {
-		cw_offsets.push_back(cl::sycl::id<2>(compute_wnd_size[0] / num_used_queues * i, 0));
-		cw_subsizes.push_back(cl::sycl::range<2>(compute_wnd_size[0] / num_used_queues * (i + 1), compute_wnd_size[1]));
+	std::array<std::vector<cl::sycl::event>, NUM_KERNELS> kernel_events;
+
+	/* split work along y (= i-dimension) */
+	size_t num_used_queues = std::min(queues.size(), INT_DIV_CEIL(NI, compute_wnd_workgroup_size[0]));
+	if (num_used_queues > 0) {
+		queue_wnd_size = cl::sycl::range<2>{
+			INT_DIV_CEIL(NI / num_used_queues, compute_wnd_workgroup_size[0]), // y
+			INT_DIV_CEIL(NJ, compute_wnd_workgroup_size[1])  // x
+		};
+
+		for (size_t i = 0; i < num_used_queues; i++) {
+			cw_offsets.push_back(cl::sycl::id<2>(queue_wnd_size[0] * i, 0));
+		}
 	}
 
 	auto kernel_data = data;
@@ -415,10 +419,9 @@ int CGpuNode::run()
 	for (size_t queue_idx = 0; queue_idx < num_used_queues; queue_idx++) {
 
 		cl::sycl::id<2> offset = cw_offsets[queue_idx];
-		cl::sycl::range<2> subsize = cw_subsizes[queue_idx];
 
 		kernel_events[KERNEL_WAVE_UPDATE].push_back(
-		    queues[queue_idx].parallel_for(cl::sycl::nd_range<2>(subsize, compute_wnd_workgroup_size),
+		    queues[queue_idx].parallel_for(cl::sycl::nd_range<2>(queue_wnd_size, compute_wnd_workgroup_size),
 			[=](cl::sycl::nd_item<2> item) {
 				waveUpdate(kernel_data, item, offset);
 			}));
@@ -433,10 +436,9 @@ int CGpuNode::run()
 
 	for (size_t queue_idx = 0; queue_idx < num_used_queues; queue_idx++) {
 		cl::sycl::id<2> offset = cw_offsets[queue_idx];
-		cl::sycl::range<2> subsize = cw_subsizes[queue_idx];
 
 		kernel_events[KERNEL_FLUX_UPDATE].push_back(queues[queue_idx].parallel_for(
-		    cl::sycl::nd_range<2>(subsize, compute_wnd_workgroup_size), kernel_events[KERNEL_WAVE_BOUND],
+		    cl::sycl::nd_range<2>(queue_wnd_size, compute_wnd_workgroup_size), kernel_events[KERNEL_WAVE_BOUND],
 		    [=](cl::sycl::nd_item<2> item) {
 				fluxUpdate(kernel_data, item, offset);
 			}));
@@ -478,6 +480,17 @@ int CGpuNode::run()
 		}
 
 		kernel_duration[i] += *std::max_element(durations.begin(), durations.end());
+		/* this produces useless results with kernel runtimes way larger in total than the overall application runtime.
+		uint64_t min_start = UINT64_MAX, max_end = 0;
+
+		for (const auto &e : kernel_events[i]) {
+			min_start = std::min(min_start, e.get_profiling_info<cl::sycl::info::event_profiling::command_submit>());
+			max_end = std::max(max_end, e.get_profiling_info<cl::sycl::info::event_profiling::command_end>());
+		}
+
+		kernel_duration[i] += (max_end - min_start) / 1.0E+6;
+		std::cout << i << ": " << (max_end - min_start) / 1.0E+6 << std::endl;
+		*/
 	}
 
 	/* data has changed now -> copy becomes necessary */
