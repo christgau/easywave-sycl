@@ -30,7 +30,7 @@
  * limitations under the Licence.
  */
 
-#define HEADER "\neasyWave ver.2013-04-11\n"
+#define HEADER "\neasyWave ver.2021-09-24/ZIB\n"
 
 #include <CL/sycl.hpp>
 #include <stdio.h>
