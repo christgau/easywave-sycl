@@ -44,3 +44,15 @@ fault="uz.Tohoku11.grd"
 ```
 
 This will compute the propagation of the tsunami caused by the Tohuku earth quake in March 2011 near Japan.
+
+### Visualization
+
+One of the (intermediate) outputs of easyWave is a `eWave.2D.sshmax` file.
+This is a Surfer Grid (grd) file.
+For visualization, you may use tools like `gdal_translate` or self-containing, yet limited Python scripts like `sfg2ppm` from the [surfertools Github Repository](https://github.com/christgau/surfertools).
+With the latter and a [color palette from GFZ](https://git.gfz-potsdam.de/id2/geoperil/easyWave/-/tree/master/code/tools) (.cpt files).
+ImageMagick's `convert` or similar commands may be used to convert the PPM file into a PNG, and bring it into the right orientation:
+
+```
+sfg2ppm.py --palette sshmax.rel.cpt eWave.2D.sshmax | convert -flip - sshmax.png
+```
