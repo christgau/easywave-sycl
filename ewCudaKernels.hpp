@@ -40,6 +40,20 @@
 #define SYCL_EXTERNAL static
 #endif /* USE_INLINE_KERNELS */
 
+namespace zib {
+	namespace sycl {
+		template<typename T>
+		T atomic_inc(T* value) {
+#if SYCL_LANGUAGE_VERSION < 202000 /* SYCL versions are 4-digit years followed by 2-digit rev */
+			return cl::sycl::atomic<T>(cl::sycl::global_ptr<T>(value)).fetch_add(1);
+#else
+			// see https://github.com/intel/llvm/issues/5647
+			return ::sycl::atomic_ref<T, ::sycl::memory_order::relaxed, ::sycl::memory_scope::device, ::sycl::access::address_space::global_space>(*value)++;
+#endif
+		}
+	}
+}
+
 SYCL_EXTERNAL void waveUpdate(KernelData data, cl::sycl::nd_item<2> item_ct1);
 SYCL_EXTERNAL void waveBoundary(KernelData data, cl::sycl::nd_item<1> item_ct1);
 SYCL_EXTERNAL void fluxUpdate(KernelData data, cl::sycl::nd_item<2> item_ct1);

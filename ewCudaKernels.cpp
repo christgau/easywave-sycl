@@ -198,24 +198,21 @@ SYCL_EXTERNAL void gridExtend(KernelData data, cl::sycl::nd_item<1> item_ct1)
 
     if ( id >= dp.jMin && id <= dp.jMax ) {
 
-          if (cl::sycl::fabs(data.h[data.idx(dp.iMin + 2, id)]) > dp.sshClipThreshold)
-                  cl::sycl::atomic<int>(cl::sycl::global_ptr<int>(&(data.g_MinMax->x())))
-                      .fetch_add(1);
+          if (cl::sycl::fabs(data.h[data.idx(dp.iMin + 2, id)]) > dp.sshClipThreshold) {
+                  zib::sycl::atomic_inc(&(data.g_MinMax->x()));
+	  }
 
           if (cl::sycl::fabs(data.h[data.idx(dp.iMax - 2, id)]) > dp.sshClipThreshold)
-                  cl::sycl::atomic<int>(cl::sycl::global_ptr<int>(&(data.g_MinMax->y())))
-                      .fetch_add(1);
+                  zib::sycl::atomic_inc(&(data.g_MinMax->y()));
     }
 
-	if ( id >= dp.iMin && id <= dp.iMax ) {
+    if ( id >= dp.iMin && id <= dp.iMax ) {
 
           if (cl::sycl::fabs(data.h[data.idx(id, dp.jMin + 2)]) > dp.sshClipThreshold)
-                  cl::sycl::atomic<int>(cl::sycl::global_ptr<int>(&(data.g_MinMax->z())))
-                      .fetch_add(1);
+                  zib::sycl::atomic_inc(&(data.g_MinMax->z()));
 
           if (cl::sycl::fabs(data.h[data.idx(id, dp.jMax - 2)]) > dp.sshClipThreshold)
-                  cl::sycl::atomic<int>(cl::sycl::global_ptr<int>(&(data.g_MinMax->w())))
-                      .fetch_add(1);
+                  zib::sycl::atomic_inc(&(data.g_MinMax->w()));
     }
 
 #else
