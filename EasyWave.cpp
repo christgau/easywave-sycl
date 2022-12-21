@@ -179,8 +179,8 @@ int main( int argc, char **argv )
 
   delete gNode;
 
-  printf_v("Runtime: %.3lf s, final domain: (%d, %d)-(%d, %d), size: %d x %d \n", diff(start, end), Jmin, Imin, Jmax, Imax, Jmax - Jmin, Imax - Imin);
-  Log.print("Runtime: %.3lf s, final domain: (%d, %d)-(%d, %d), size: %d x %d", diff(start, end), Jmin, Imin, Jmax, Imax, Jmax - Jmin, Imax - Imin);
+  printf_v("Runtime: %.3lf s, final domain: (%d, %d)-(%d, %d), size: %d x %d \n", diff(start, end), Jmin, Imin, Jmax, Imax, Jmax - Jmin + 1, Imax - Imin + 1);
+  Log.print("Runtime: %.3lf s, final domain: (%d, %d)-(%d, %d), size: %d x %d", diff(start, end), Jmin, Imin, Jmax, Imax, Jmax - Jmin + 1, Imax - Imin + 1);
 
   return 0;
 }
