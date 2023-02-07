@@ -17,12 +17,12 @@
  * results in scientific communications) commit to make this modified source
  * code available in a repository that is easily and freely accessible for a
  * duration of five years after the communication of the obtained results.
- * 
+ *
  * You may not use this work except in compliance with the Licence.
- * 
+ *
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/software/page/eupl
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,7 +34,6 @@
 // Bull.Seism.Soc.Am., v.75, p.1135-1154.
 // okada@bosai.go.jp
 
-#include <CL/sycl.hpp>
 #include <math.h>
 #define My_PI 3.14159265358979
 #define DISPLMAX 1000
@@ -82,7 +81,7 @@ int okada( double L,double W,double D,double sinD,double cosD,double U1,double U
   length = L;
   elast = 0.5;   // mu/(lambda+mu)
 
-  
+
   U1x=U2x=U1y=U2y=U1z=U2z=0;
 
   if( U1 != 0 ) {
@@ -161,7 +160,7 @@ double f_ssUy(double ksi, double eta)
   I2 = fun_I2(ksi,eta);
   yp = fun_yp(ksi,eta);
 
-  
+
   val = yp*q/R/(R+eta) + q*cdip/(R+eta) + I2*sdip;
 
   return val;
@@ -177,7 +176,7 @@ double f_ssUz(double ksi, double eta)
   I4 = fun_I4(ksi,eta);
   dp = fun_dp(ksi,eta);
 
-  
+
   val = dp*q/R/(R+eta) + q*sdip/(R+eta) + I4*sdip;
 
   return val;
@@ -192,7 +191,7 @@ double f_dsUx(double ksi, double eta)
   R = fun_R(ksi,eta);
   I3 = fun_I3(ksi,eta);
 
-  
+
   val = q/R - I3*sdip*cdip;
 
   return val;
@@ -220,7 +219,7 @@ double f_dsUy(double ksi, double eta)
   } else {
     term2 = atan(ksi * eta / q / R);
   }
-  
+
   val = yp*q/R/(R+ksi) + cdip*term2 - I1*sdip*cdip;
 
   return val;
@@ -248,7 +247,7 @@ double f_dsUz(double ksi, double eta)
   } else {
     term2 = atan(ksi * eta / q / R);
   }
-  
+
   val = dp*q/R/(R+ksi) + sdip*term2 - I5*sdip*cdip;
 
   return val;

@@ -17,12 +17,12 @@
  * results in scientific communications) commit to make this modified source
  * code available in a repository that is easily and freely accessible for a
  * duration of five years after the communication of the obtained results.
- * 
+ *
  * You may not use this work except in compliance with the Licence.
- * 
+ *
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/software/page/eupl
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,7 +30,6 @@
  * limitations under the Licence.
  */
 
-#include <CL/sycl.hpp>
 #include <stdio.h>
 #include <string.h>
 
@@ -81,7 +80,7 @@ int ewSource()
     int effSymSource = 0;
     long l;
     double dist,energy,factLat,effRad,effMax;
-    
+
     ierr = eq.read( Par.fileSource ); if(ierr) return ierr;
 
     if( Par.adjustZtop ) {
@@ -138,7 +137,7 @@ int ewSource()
     // set grid resolution, grid dimensions will be set automatically
     uZ.dx = DLon; uZ.dy = DLat;
     ierr = eq.calculate( uZ ); if(ierr) return ierr;
-    
+
     if( effSymSource ) {
       // integrate for tsunami energy
       energy = 0.;
@@ -152,7 +151,7 @@ int ewSource()
       effMax =
           1. / effRad / sqrt(M_PI / 2) / sqrt(1000 * 9.81 / 2) * sqrt(energy);
       Log.print( "Effective source radius: %g km,  max height: %g m", effRad/1000, effMax );
-  
+
       // transfer uplift onto tsunami grid and define deformed area for acceleration
       for( i=0; i<uZ.nx; i++ ) {
         for( j=0; j<uZ.ny; j++ ) {
@@ -163,9 +162,9 @@ int ewSource()
             uZ(i,j) = 0.;
         }
       }
-      
+
     } // effective source
-  
+
   } // src_type == fault
 
   // remove noise in the source

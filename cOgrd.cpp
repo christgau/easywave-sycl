@@ -30,7 +30,6 @@
  * limitations under the Licence.
  */
 
-#include <CL/sycl.hpp>
 #include <string.h>
 #include <math.h>
 

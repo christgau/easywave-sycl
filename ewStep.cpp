@@ -31,7 +31,6 @@
  */
 
 // Time stepping
-#include <CL/sycl.hpp>
 #include <stdio.h>
 #include <stdlib.h>
 

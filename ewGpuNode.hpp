@@ -34,7 +34,6 @@
 #define EW_GPUNODE_H
 
 /* FIXME: check header dependencies */
-#include <CL/sycl.hpp>
 #include "easywave.h"
 #include "ewNode.h"
 #include <stdio.h>
