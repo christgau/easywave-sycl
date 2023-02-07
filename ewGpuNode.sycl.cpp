@@ -32,12 +32,9 @@
 
 #include <CL/sycl.hpp>
 #include "ewGpuNode.hpp"
-#include "ewCudaKernels.hpp"
+#include "ewKernels.sycl.hpp"
 #include <cmath>
 
-#include <algorithm>
-#include <iomanip>
-#include <numeric>
 #include <vector>
 
 /* memory helpers, inspired by dpct headers */
@@ -123,8 +120,6 @@ CGpuNode::CGpuNode() {
 		std::cout << " - " << k << std::endl;
 	}
 
-	for( int i = 0; i < NUM_TIMED_KERNELS; i++ ) { dur[i] = 0.0; }
-
 	have_profiling = dev.get_info<cl::sycl::info::device::queue_profiling>() && Par.verbose;
 
 	if (have_profiling) {
@@ -151,17 +146,7 @@ CGpuNode::~CGpuNode()
 		delete queue;
 	}
 
-    if (have_profiling) {
-        /* all kernel timings */
-        auto total = std::accumulate(kernel_duration.begin(), kernel_duration.end(), 0.0);
-
-        for (int i = 0; i < kernel_duration.size(); i++) {
-            std::cout << "runtime kernel " << i << " (" << kernel_names[i] << "): "
-                << std::fixed << std::setprecision(3) << kernel_duration[i] << " ms ("
-                << std::fixed << std::setprecision(3) << (kernel_duration[i] / total) << ")" << std::endl;
-        }
-        std::cout << "kernels total: " << total << std::endl;
-    }
+    dumpProfilingData();
 }
 
 int CGpuNode::mallocMem() {

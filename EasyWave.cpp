@@ -30,17 +30,17 @@
  * limitations under the Licence.
  */
 
-#define HEADER "\neasyWave ver.2021-09-24/ZIB\n"
+#define HEADER "\neasyWave ver.2023-02-24/ZIB\n"
 
-#include <CL/sycl.hpp>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdexcept>
 #include "utilits.h"
 #include "easywave.h"
 
-#ifdef SYCL_LANGUAGE_VERSION
+#ifdef EW_GPU_ENABLED
 #include "ewGpuNode.hpp"
 #endif
 

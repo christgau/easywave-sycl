@@ -64,7 +64,7 @@ SYCL_EXTERNAL void gridExtend(KernelData data, cl::sycl::nd_item<1> item_ct1);
 /* hipSYCL does not support SYCL_EXTERNAL so kernels must be contained in the same
  * compilation unit where they are called. Thus, we do a dirty include of the source
  * file here (see also https://github.com/illuhad/hipSYCL/issues/604) */
-#include "ewCudaKernels.cpp"
+#include "ewKernels.sycl.cpp"
 #endif /* USE_INLINE_KERNELS */
 
 #endif /* EW_KERNELS_H */

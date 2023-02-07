@@ -32,7 +32,7 @@
 
 #include <CL/sycl.hpp>
 #include "ewGpuNode.hpp"
-#include "ewCudaKernels.hpp"
+#include "ewKernels.sycl.hpp"
 
 #ifdef USE_STD_MATH
 #include <cmath>
@@ -214,9 +214,7 @@ SYCL_EXTERNAL void gridExtend(KernelData data, cl::sycl::nd_item<1> item_ct1)
           if (cl::sycl::fabs(data.h[data.idx(id, dp.jMax - 2)]) > dp.sshClipThreshold)
                   zib::sycl::atomic_inc(&(data.g_MinMax->w()));
     }
-
 #else
-
 	if( id == 1 ) {
 
           for( int j = dp.jMin; j <= dp.jMax; j++ ) {
@@ -258,6 +256,5 @@ SYCL_EXTERNAL void gridExtend(KernelData data, cl::sycl::nd_item<1> item_ct1)
         }
 
 #endif
-
 }
 

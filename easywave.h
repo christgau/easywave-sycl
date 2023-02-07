@@ -37,6 +37,23 @@
 #define Gravity 9.81         // gravity acceleration
 #define Omega 7.29e-5        // Earth rotation period [1/sec]
 
+#ifdef SYCL_LANGUAGE_VERSION
+
+// Needs to be included before ewdefs to avoid nasty clash with idx preprocessor define.
+#include <CL/sycl.hpp>
+
+#define EW_GPU_ENABLED 1
+
+namespace easywave { using quad_int_t = cl::sycl::int4; }
+
+#else
+
+#include <array>
+
+namespace easywave { using quad_int_t = std::array<int, 4>; }
+
+#endif /* GPU programming model */
+
 #include "ewdefs.h"
 
 int ewLoadBathymetry();
@@ -61,11 +78,11 @@ extern long *idxPOI;
 #define NUM_DURATIONS 5
 extern float dur[NUM_DURATIONS];
 
-/* verbose printf: only executed if -verbose was set */
-#define printf_v( Args, ... )	if( Par.verbose ) printf( Args, ##__VA_ARGS__);
-
 #include "ewNode.h"
 
 extern CNode *gNode;
+
+/* verbose printf: only executed if -verbose was set */
+#define printf_v( Args, ... )	if( Par.verbose ) printf( Args, ##__VA_ARGS__);
 
 #endif /* EASYWAVE_H */

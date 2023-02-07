@@ -39,11 +39,14 @@
 #include "ewNode.h"
 #include <stdio.h>
 
+#include <iostream>
 #include <chrono>
 #include <string>
 #include <array>
 
-#define CUDA_CALL(x) if( x != cudaSuccess ) { fprintf( stderr, "Error in file %s on line %u: %s\n", __FILE__, __LINE__, cudaGetErrorString( cudaGetLastError() ) ); return 1; }
+#include <algorithm>
+#include <iomanip>
+#include <numeric>
 
 #undef idx
 
@@ -89,7 +92,7 @@ public:
 
 	Params params;
 
-	cl::sycl::int4 *g_MinMax;
+	easywave::quad_int_t *g_MinMax;
 
         int le( int ij ) { return ij - params.pI; }
 	int ri( int ij ) { return ij + params.pI; }
@@ -138,7 +141,9 @@ protected:
 	}};
 
 	bool have_profiling;
+#ifdef SYCL_LANGUAGE_VERSION
 	cl::sycl::queue *queue, *default_queue;
+#endif
 
 public:
 	CGpuNode();
@@ -150,6 +155,22 @@ public:
 	int copyPOIs();
 	int freeMem();
 	int run();
+
+private:
+	void dumpProfilingData()
+	{
+	    if (have_profiling) {
+		/* all kernel timings */
+		auto total = std::accumulate(kernel_duration.begin(), kernel_duration.end(), 0.0);
+
+		for (int i = 0; i < kernel_duration.size(); i++) {
+		    std::cout << "runtime kernel " << i << " (" << kernel_names[i] << "): "
+			<< std::fixed << std::setprecision(3) << kernel_duration[i] << " ms ("
+			<< std::fixed << std::setprecision(3) << (kernel_duration[i] / total) << ")" << std::endl;
+		}
+		std::cout << "kernels total: " << total << std::endl;
+	    }
+	}
 };
 
 #endif /* EW_GPUNODE_H */
