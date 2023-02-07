@@ -1,0 +1,33 @@
+CXX=nvcc
+NVCC=nvcc
+CXXFLAGS=-O3 -std=c++17 --extra-device-vectorization --use_fast_math -x cu
+
+SOURCES=\
+	EasyWave.cpp \
+	ewKernels.cuda.cu \
+	ewGpuNode.cuda.cu \
+	cOgrd.cpp \
+	cOkadaEarthquake.cpp \
+	cOkadaFault.cpp \
+	cSphere.cpp \
+	ewGrid.cpp \
+	ewOut2D.cpp \
+	ewParam.cpp \
+	ewPOIs.cpp \
+	ewSource.cpp \
+	ewStep.cpp \
+	okada.cpp \
+	utilits.cpp
+
+OBJECTS=$(patsubst %.cu,%.o,$(patsubst %.cpp,%.o,$(SOURCES)))
+
+easywave-cuda: $(OBJECTS)
+	$(NVCC) $^ -o $@
+
+%.o: %.cu
+	$(NVCC) $(CXXFLAGS) -c $^ -o $@
+
+.PHONY: clean
+
+clean:
+	rm -f *.o easywave-cuda

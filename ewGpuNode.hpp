@@ -93,11 +93,11 @@ public:
 
 	easywave::quad_int_t *g_MinMax;
 
-        int le( int ij ) { return ij - params.pI; }
-	int ri( int ij ) { return ij + params.pI; }
-	int up( int ij ) { return ij + 1; }
-	int dn( int ij ) { return ij - 1; }
-	int idx( int i, int j ) { return (j-1) + (i-1) * params.pI + params.lpad; }
+	DEVICE_FUNCTION int le( int ij ) { return ij - params.pI; }
+	DEVICE_FUNCTION int ri( int ij ) { return ij + params.pI; }
+	DEVICE_FUNCTION int up( int ij ) { return ij + 1; }
+	DEVICE_FUNCTION int dn( int ij ) { return ij - 1; }
+	DEVICE_FUNCTION HOST_FUNCTION int idx( int i, int j ) { return (j-1) + (i-1) * params.pI + params.lpad; }
 };
 
 /* GPU dependent */

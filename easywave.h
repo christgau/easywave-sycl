@@ -37,6 +37,10 @@
 #define Gravity 9.81         // gravity acceleration
 #define Omega 7.29e-5        // Earth rotation period [1/sec]
 
+namespace easywave {
+	using gpu_api_type_t = enum class GpuApiType { UNKNOWN, CUDA, HIP, SYCL };
+}
+
 #ifdef SYCL_LANGUAGE_VERSION
 
 // Needs to be included before ewdefs to avoid nasty clash with idx preprocessor define.
@@ -44,12 +48,34 @@
 
 #define EW_GPU_ENABLED 1
 
+#define DEVICE_FUNCTION /* empty */
+#define HOST_FUNCTION /* empty */
+
+constexpr easywave::gpu_api_type_t api = easywave::GpuApiType::SYCL;
 namespace easywave { using quad_int_t = cl::sycl::int4; }
+
+#elif defined(__CUDACC__)
+
+#include <cuda.h>
+
+#define DEVICE_FUNCTION __device__
+#define HOST_FUNCTION __host__
+
+#define EW_GPU_ENABLED 1
+
+constexpr easywave::gpu_api_type_t api = easywave::GpuApiType::CUDA;
+namespace easywave { using quad_int_t = int4; }
 
 #else
 
 #include <array>
 
+#define DEVICE_FUNCTION /* empty */
+#define HOST_FUNCTION /* empty */
+
+#undef EW_GPU_ENABLED
+
+constexpr easywave::gpu_api_type_t api = easywave::GpuApiType::UNKNOWN;
 namespace easywave { using quad_int_t = std::array<int, 4>; }
 
 #endif /* GPU programming model */

@@ -1,3 +1,4 @@
 *.o
 make.inc
 easywave-sycl
+easywave-cuda
