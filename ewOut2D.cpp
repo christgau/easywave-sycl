@@ -119,7 +119,7 @@ int ewDump2D()
 {
   FILE *fp;
   short nOutI,nOutJ;
-  int i,j,m;
+  int i,j;
   float ftmp;
   double dtmp,lonOutMin,lonOutMax,latOutMin,latOutMax;
   char record[128];

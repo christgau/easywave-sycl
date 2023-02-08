@@ -16,6 +16,8 @@ BASE_SOURCES=\
 	okada.cpp \
 	utilits.cpp
 
+CXXFLAGS += -Wall -Wextra
+
 ifeq ($(strip $(INLINE_KERNELS)),)
 EXTRA_SOURCES=ewKernels.sycl.cpp
 endif

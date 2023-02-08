@@ -52,13 +52,12 @@ static float **sshPOI;
 
 int ewLoadPOIs()
 {
-  FILE *fp,*fpFit,*fpAcc,*fpRej;
-  int ierr,line;
+  FILE *fp,*fpAcc,*fpRej;
+  int line;
   int i,j,i0,j0,imin,imax,jmin,jmax,flag,it,n;
   int rad,nmin,itype;
   char record[256],buf[256],id[64];
   double lon,lat,d2,d2min,lenLon,lenLat,depth;
-  double POIdistMax,POIdepthMin,POIdepthMax;
 
   CNode& Node = *gNode;
 

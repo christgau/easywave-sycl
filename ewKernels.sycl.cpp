@@ -63,7 +63,8 @@ SYCL_EXTERNAL void waveUpdate(KernelData data, cl::sycl::nd_item<2> item_ct1)
 
     if( dp.sshArrivalThreshold && data.tArr[ij] < 0 && absH > dp.sshArrivalThreshold )
 	  data.tArr[ij] = dp.mTime;
-	  data.h[ij] = hh;
+
+	data.h[ij] = hh;
   }
 }
 

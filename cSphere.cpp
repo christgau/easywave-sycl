@@ -127,7 +127,6 @@ int cObsArray::read( char *fname )
   FILE *fp;
   char record[256], buf[64];
   int n,k,idPresent,line=0;
-  double lonr,latr;
 
 
   fp = fopen(fname,"rt");

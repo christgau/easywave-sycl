@@ -175,14 +175,13 @@ int cOgrd::readHeader( const char *grdfile )
 {
   FILE *fp;
   char dsaa_label[8];
-  int ierr,isBin;
+  int isBin;
   short shval;
-  float fval;
   double dval;
 
   if( (fp = fopen( grdfile, "rb" )) == NULL ) return Err.post(Err.msgOpenFile(grdfile));
   memset( dsaa_label, 0, 5 );
-  ierr = fread( dsaa_label, 4, 1, fp );
+  fread( dsaa_label, 4, 1, fp );
   if( !strcmp( dsaa_label,"DSAA" ) )
     isBin = 0;
   else if( !strcmp( dsaa_label,"DSBB" ) )
@@ -195,20 +194,20 @@ int cOgrd::readHeader( const char *grdfile )
 
   if( isBin ) {
     fp = fopen( grdfile, "rb" );
-    ierr = fread( dsaa_label, 4, 1, fp );
-    ierr = fread( &shval, sizeof(short), 1, fp ); nx = shval;
-    ierr = fread( &shval, sizeof(short), 1, fp ); ny = shval;
-    ierr = fread( &xmin, sizeof(double), 1, fp ); ierr = fread( &xmax, sizeof(double), 1, fp );
-    ierr = fread( &ymin, sizeof(double), 1, fp ); ierr = fread( &ymax, sizeof(double), 1, fp );
-    ierr = fread( &dval, sizeof(double), 1, fp ); ierr = fread( &dval, sizeof(double), 1, fp ); // zmin zmax
+    fread( dsaa_label, 4, 1, fp );
+    fread( &shval, sizeof(shval), 1, fp ); nx = shval;
+    fread( &shval, sizeof(shval), 1, fp ); ny = shval;
+    fread( &xmin, sizeof(xmin), 1, fp ); fread( &xmax, sizeof(xmax), 1, fp );
+    fread( &ymin, sizeof(ymin), 1, fp ); fread( &ymax, sizeof(ymax), 1, fp );
+    fread( &dval, sizeof(dval), 1, fp ); fread( &dval, sizeof(dval), 1, fp ); // zmin zmax
   }
   else {
     fp = fopen( grdfile, "rt" );
-    ierr = fscanf( fp, "%s", dsaa_label );
-    ierr = fscanf( fp, " %d %d ", &nx, &ny );
-    ierr = fscanf( fp, " %lf %lf ", &xmin, &xmax );
-    ierr = fscanf( fp, " %lf %lf ", &ymin, &ymax );
-    ierr = fscanf( fp, " %*s %*s " );   // zmin, zmax
+    fscanf( fp, "%s", dsaa_label );
+    fscanf( fp, " %d %d ", &nx, &ny );
+    fscanf( fp, " %lf %lf ", &xmin, &xmax );
+    fscanf( fp, " %lf %lf ", &ymin, &ymax );
+    fscanf( fp, " %*s %*s " );   // zmin, zmax
   }
 
   fclose( fp );
@@ -240,7 +239,7 @@ int cOgrd::readGRD( const char *grdfile )
 {
   FILE *fp;
   char dsaa_label[8];
-  int i,j,ierr,isBin;
+  int i,j,isBin;
   short shval;
   float fval;
   double dval;
@@ -249,7 +248,7 @@ int cOgrd::readGRD( const char *grdfile )
   // check if bathymetry file is in ascii or binary format
   if( (fp = fopen( grdfile, "rb" )) == NULL ) return Err.post(Err.msgOpenFile(grdfile));
   memset( dsaa_label, 0, 5 );
-  ierr = fread( dsaa_label, 4, 1, fp );
+  fread( dsaa_label, 4, 1, fp );
   if( !strcmp( dsaa_label,"DSAA" ) )
     isBin = 0;
   else if( !strcmp( dsaa_label,"DSBB" ) )
@@ -264,14 +263,14 @@ int cOgrd::readGRD( const char *grdfile )
   // Read Surfer GRD-file
   if( isBin ) {
     fp = fopen( grdfile, "rb" );
-    ierr = fread( dsaa_label, 4, 1, fp );
-    ierr = fread( &shval, sizeof(short), 1, fp ); nx = shval;
-    ierr = fread( &shval, sizeof(short), 1, fp ); ny = shval;
+    fread( dsaa_label, 4, 1, fp );
+    fread( &shval, sizeof(short), 1, fp ); nx = shval;
+    fread( &shval, sizeof(short), 1, fp ); ny = shval;
   }
   else {
     fp = fopen( grdfile, "rt" );
-    ierr = fscanf( fp, "%s", dsaa_label );
-    ierr = fscanf( fp, " %d %d ", &nx, &ny );
+    fscanf( fp, "%s", dsaa_label );
+    fscanf( fp, " %d %d ", &nx, &ny );
   }
 
   nnod = nx*ny;
@@ -281,14 +280,14 @@ int cOgrd::readGRD( const char *grdfile )
   for( int l=0; l<nnod; l++ ) val[l]=noval;
 
   if( isBin ) {
-    ierr = fread( &xmin, sizeof(double), 1, fp ); ierr = fread( &xmax, sizeof(double), 1, fp );
-    ierr = fread( &ymin, sizeof(double), 1, fp ); ierr = fread( &ymax, sizeof(double), 1, fp );
-    ierr = fread( &dval, sizeof(double), 1, fp ); ierr = fread( &dval, sizeof(double), 1, fp ); // zmin zmax
+    fread( &xmin, sizeof(double), 1, fp ); fread( &xmax, sizeof(double), 1, fp );
+    fread( &ymin, sizeof(double), 1, fp ); fread( &ymax, sizeof(double), 1, fp );
+    fread( &dval, sizeof(double), 1, fp ); fread( &dval, sizeof(double), 1, fp ); // zmin zmax
   }
   else {
-    ierr = fscanf( fp, " %lf %lf ", &xmin, &xmax );
-    ierr = fscanf( fp, " %lf %lf ", &ymin, &ymax );
-    ierr = fscanf( fp, " %*s %*s " );   // zmin, zmax
+    fscanf( fp, " %lf %lf ", &xmin, &xmax );
+    fscanf( fp, " %lf %lf ", &ymin, &ymax );
+    fscanf( fp, " %*s %*s " );   // zmin, zmax
   }
 
   dx = (xmax-xmin)/(nx-1);
@@ -298,9 +297,9 @@ int cOgrd::readGRD( const char *grdfile )
     for( i=0; i<nx; i++ ) {
 
       if( isBin )
-        ierr = fread( &fval, sizeof(float), 1, fp );
+        fread( &fval, sizeof(float), 1, fp );
       else
-        ierr = fscanf( fp, " %f ", &fval );
+        fscanf( fp, " %f ", &fval );
 
       val[idx(i,j)] = (double)fval;
     }
@@ -456,7 +455,6 @@ int cOgrd::readXYZ( const char *fname )
 int cOgrd::readRasterStream( FILE *fp, int ordering, int ydirection )
 {
   int i,j;
-  double x0,x,y0,y,z;
 
 
   if( ordering == ROWWISE ) {
@@ -868,7 +866,7 @@ double cOgrd::getVal( double x, double y )
 
 //=========================================================================
 // Get longitude from IJ-indeces
-double cOgrd::getX( int i, int j )
+double cOgrd::getX( int i, [[maybe_unused]] int j )
 {
   return( xmin + i*dx );
 }
@@ -887,7 +885,7 @@ double cOgrd::getX( int idx )
 
 //=========================================================================
 // Get lattitude from IJ-indeces
-double cOgrd::getY( int i, int j )
+double cOgrd::getY( [[maybe_unused]] int i, int j )
 {
   return( ymin + j*dy );
 }

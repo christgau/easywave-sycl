@@ -114,7 +114,7 @@ int okada( double L,double W,double D,double sinD,double cosD,double U1,double U
 }
 
 
-double fun_Chinnery( double (*fun)(double ksi, double eta), double x, double y )
+double fun_Chinnery( double (*fun)(double, double), [[maybe_unused]] double x, [[maybe_unused]] double y )
 {
   double value;
 
@@ -265,7 +265,7 @@ double fun_R( double ksi, double eta )
 }
 
 
-double fun_X( double ksi, double eta )
+double fun_X( double ksi, [[maybe_unused]] double eta )
 {
   double val;
 
@@ -275,7 +275,7 @@ double fun_X( double ksi, double eta )
 }
 
 
-double fun_dp( double ksi, double eta )
+double fun_dp( [[maybe_unused]] double ksi, double eta )
 {
   double val;
 
@@ -285,7 +285,7 @@ double fun_dp( double ksi, double eta )
 }
 
 
-double fun_yp( double ksi, double eta )
+double fun_yp( [[maybe_unused]] double ksi, double eta )
 {
   double val;
 

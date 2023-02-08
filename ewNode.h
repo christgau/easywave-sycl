@@ -56,7 +56,7 @@ public:
 	virtual int freeMem() = 0;
 	virtual int run() = 0;
 
-	virtual void initMemory( int index, int val ) = 0;
+	virtual void initMemory( int index ) = 0;
 };
 
 class CStructNode : public CNode {
@@ -70,13 +70,13 @@ public:
 		return node[idx1][idx2];
 	}
 
-	void initMemory( int index, int val ) {
+	void initMemory( int index ) {
 
 		int m;
 		for( int i=1; i<=NLon; i++ ) {
 		  for( int j=1; j<=NLat; j++ ) {
 				m = idx(j,i);
-				this->operator ()(m, index) = val;
+				this->operator ()(m, index) = 0;
 		  }
 		}
 	}
@@ -184,7 +184,7 @@ public:
 //        return (void*) (d + (idx * this->slice_size));
     }
 
-	virtual void initMemory( int index, int val ) {
+	virtual void initMemory( int index ) {
 
 		memset( getBuf(index), 0, NLat * NLon * sizeof(float) );
 	}

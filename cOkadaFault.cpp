@@ -72,7 +72,6 @@ cOkadaFault::~cOkadaFault()
 int cOkadaFault::read( char *faultparam )
 {
   char *cp,buf[64];
-  int ierr;
 
 
   // origin location
@@ -329,9 +328,9 @@ int cOkadaFault::global2local( double glon, double glat, double& lx, double& ly 
   switch( refpos ) {
   case FLT_POS_C:  lx = lx + length/2; ly = ly + wp/2; break;
   case FLT_POS_MT: lx = lx + length/2; ly = ly + wp  ; break;
-  case FLT_POS_BT: lx = lx           ; ly = ly + wp  ; break;
-  case FLT_POS_BB: lx = lx           ; ly = ly       ; break;
-  case FLT_POS_MB: lx = lx + length/2; ly = ly       ; break;
+  case FLT_POS_BT: lx = lx * 1.0     ; ly = ly + wp  ; break;
+  case FLT_POS_BB: lx = lx * 1.0     ; ly = ly * 1.0 ; break;
+  case FLT_POS_MB: lx = lx + length/2; ly = ly * 1.0 ; break;
   }
 
   return 0;
@@ -375,7 +374,6 @@ int cOkadaFault::getDeformArea( double& lonmin, double& lonmax, double& latmin, 
 {
   #define FLT_NL 2    // significant deformation area along length (in length units)
   #define FLT_NW 5    // significant deformation area along width (in width units)
-  int ierr;
   double dxC,dyC,l2,w2,glon,glat;
 
 
@@ -411,7 +409,6 @@ int cOkadaFault::getDeformArea( double& lonmin, double& lonmax, double& latmin, 
 //=========================================================================
 int cOkadaFault::calculate( double lon0, double lat0, double& uz, double& ulon, double &ulat )
 {
-  int ierr;
   double x,y,ux,uy;
 
 
@@ -434,7 +431,6 @@ int cOkadaFault::calculate( double lon0, double lat0, double& uz, double& ulon, 
 //=========================================================================
 int cOkadaFault::calculate( double lon0, double lat0, double &uz )
 {
-  int ierr;
   double x,y,ux,uy;
 
 

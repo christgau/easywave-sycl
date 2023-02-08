@@ -804,7 +804,7 @@ char *utlFileChangeExtension( const char *fname, const char *newext )
 char *utlFileAddExtension( const char *fname, const char *addext )
 //   Add new extension. Return new file name
 {
-  char buf[256], *cp;
+  char buf[256];
   int len,extlen;
 
   len = strlen(fname);

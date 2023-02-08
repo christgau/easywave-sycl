@@ -78,7 +78,6 @@ int ewSource()
   // read fault(s) from file
   if( srcType == SRC_FLT) {
     int effSymSource = 0;
-    long l;
     double dist,energy,factLat,effRad,effMax;
 
     ierr = eq.read( Par.fileSource ); if(ierr) return ierr;

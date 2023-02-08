@@ -87,7 +87,6 @@ int cOkadaEarthquake::read( char *fname )
 // check all ruptures for parameter integrity
 int cOkadaEarthquake::finalizeInput()
 {
-  char msg[32];
   int ierr,n;
 
 

@@ -162,7 +162,7 @@ private:
 		/* all kernel timings */
 		auto total = std::accumulate(kernel_duration.begin(), kernel_duration.end(), 0.0);
 
-		for (int i = 0; i < kernel_duration.size(); i++) {
+		for (size_t i = 0; i < kernel_duration.size(); i++) {
 		    std::cout << "runtime kernel " << i << " (" << kernel_names[i] << "): "
 			<< std::fixed << std::setprecision(3) << kernel_duration[i] << " ms ("
 			<< std::fixed << std::setprecision(3) << (kernel_duration[i] / total) << ")" << std::endl;

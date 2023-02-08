@@ -54,7 +54,7 @@ int ewLoadBathymetry()
   FILE *fp;
   char fileLabel[5];
   unsigned short shval;
-  int ierr,isBin,i,j,m,k;
+  int isBin,i,j,m,k;
   float fval;
   double dval;
 
@@ -66,7 +66,7 @@ int ewLoadBathymetry()
   if( (fp=fopen(Par.fileBathymetry,"rb")) == NULL ) return Err.post( Err.msgOpenFile(Par.fileBathymetry) );
 
   memset( fileLabel, 0, 5 );
-  ierr = fread( fileLabel, 4, 1, fp );
+  fread( fileLabel, 4, 1, fp );
   if( !strcmp( fileLabel,"DSAA" ) )
     isBin = 0;
   else if( !strcmp( fileLabel,"DSBB" ) )
@@ -78,28 +78,28 @@ int ewLoadBathymetry()
 
   if( isBin ) {
     fp = fopen( Par.fileBathymetry, "rb" );
-    ierr = fread( fileLabel, 4, 1, fp );
-    ierr = fread( &shval, sizeof(unsigned short), 1, fp ); NLon = shval;
-    ierr = fread( &shval, sizeof(unsigned short), 1, fp ); NLat = shval;
+    fread( fileLabel, 4, 1, fp );
+    fread( &shval, sizeof(unsigned short), 1, fp ); NLon = shval;
+    fread( &shval, sizeof(unsigned short), 1, fp ); NLat = shval;
   }
   else {
     fp = fopen( Par.fileBathymetry, "rt" );
-    ierr = fscanf( fp, "%s", fileLabel );
-    ierr = fscanf( fp, " %d %d ", &NLon, &NLat );
+    fscanf( fp, "%s", fileLabel );
+    fscanf( fp, " %d %d ", &NLon, &NLat );
   }
 
   // try to allocate memory for GRIDNODE structure and for caching arrays
   if( Node.mallocMem() ) return Err.post( Err.msgAllocateMem() );
 
   if( isBin ) {
-    ierr = fread( &LonMin, sizeof(double), 1, fp ); ierr = fread( &LonMax, sizeof(double), 1, fp );
-    ierr = fread( &LatMin, sizeof(double), 1, fp ); ierr = fread( &LatMax, sizeof(double), 1, fp );
-    ierr = fread( &dval, sizeof(double), 1, fp ); ierr = fread( &dval, sizeof(double), 1, fp ); // zmin zmax
+    fread( &LonMin, sizeof(double), 1, fp ); fread( &LonMax, sizeof(double), 1, fp );
+    fread( &LatMin, sizeof(double), 1, fp ); fread( &LatMax, sizeof(double), 1, fp );
+    fread( &dval, sizeof(double), 1, fp ); fread( &dval, sizeof(double), 1, fp ); // zmin zmax
   }
   else {
-    ierr = fscanf( fp, " %lf %lf ", &LonMin, &LonMax );
-    ierr = fscanf( fp, " %lf %lf ", &LatMin, &LatMax );
-    ierr = fscanf( fp, " %*s %*s " );   // zmin, zmax
+    fscanf( fp, " %lf %lf ", &LonMin, &LonMax );
+    fscanf( fp, " %lf %lf ", &LatMin, &LatMax );
+    fscanf( fp, " %*s %*s " );   // zmin, zmax
   }
 
   DLon = (LonMax - LonMin)/(NLon - 1);   // in degrees
@@ -113,7 +113,7 @@ int ewLoadBathymetry()
 	  /* NOTE: optimal would be reading everything in one step, but that does not work because rows and columns are transposed
 	     * (only possible with binary data at all) - use temporary buffer for now (consumes additional memory!) */
 	  float *buf = new float[ NLat*NLon ];
-	  ierr = fread( buf, sizeof(float), NLat*NLon, fp );
+	  fread( buf, sizeof(float), NLat*NLon, fp );
 
 	  for( i=1; i<=NLon; i++ ) {
 		for( j=1; j<=NLat; j++ ) {
@@ -145,7 +145,7 @@ int ewLoadBathymetry()
   		for( i=1; i<=NLon; i++ ) {
 
 			m = idx(j,i);
-			ierr = fscanf( fp, " %f ", &fval );
+			fscanf( fp, " %f ", &fval );
 
 			Node(m, iTopo) = fval;
 			Node(m, iTime) = -1;
@@ -163,7 +163,7 @@ int ewLoadBathymetry()
   }
 
   for( k=1; k<MAX_VARS_PER_NODE-2; k++ ) {
-	  Node.initMemory( k, 0 );
+	  Node.initMemory( k );
   }
 
   fclose( fp );
