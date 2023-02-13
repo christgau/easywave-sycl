@@ -66,6 +66,18 @@ namespace easywave { using quad_int_t = cl::sycl::int4; }
 constexpr easywave::gpu_api_type_t api = easywave::GpuApiType::CUDA;
 namespace easywave { using quad_int_t = int4; }
 
+#elif defined(__HIPCC__)
+
+#define DEVICE_FUNCTION __device__
+#define HOST_FUNCTION __host__
+
+#include "hip/hip_runtime.h"
+
+#define EW_GPU_ENABLED 1
+
+constexpr easywave::gpu_api_type_t api = easywave::GpuApiType::HIP;
+namespace easywave { using quad_int_t = int4; }
+
 #else
 
 #include <array>

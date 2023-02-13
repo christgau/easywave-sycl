@@ -2,3 +2,4 @@
 make.inc
 easywave-sycl
 easywave-cuda
+easywave-hip
