@@ -244,7 +244,7 @@ int CGpuNode::run() {
 	dim3 threads( xThreads, yThreads );
 	dim3 blocks( xBlocks, yBlocks );
 
-	int nBlocks = ceil( (float)max(dp.nI,dp.nJ) / (float)nThreads );
+	int nBlocks = ceil( (float)std::max(dp.nI,dp.nJ) / (float)nThreads );
 
 	dp.mTime = Par.time;
 
@@ -278,10 +278,10 @@ int CGpuNode::run() {
 	CUDA_CALL( cudaEventRecord( evtEnd[KERNEL_MEMCPY], 0 ) );
 	cudaDeviceSynchronize();
 
-	if( MinMax.x ) Imin = dp.iMin = max( dp.iMin-1, 2 );
-	if( MinMax.y ) Imax = dp.iMax = min( dp.iMax+1, dp.nI-1 );
-	if( MinMax.z ) Jmin = dp.jMin = max( dp.jMin-MEM_ALIGN, 2 );
-	if( MinMax.w ) Jmax = dp.jMax = min( dp.jMax+1, dp.nJ-1 );
+	if( MinMax.x ) Imin = dp.iMin = std::max( dp.iMin-1, 2 );
+	if( MinMax.y ) Imax = dp.iMax = std::min( dp.iMax+1, dp.nI-1 );
+	if( MinMax.z ) Jmin = dp.jMin = std::max( dp.jMin-MEM_ALIGN, 2 );
+	if( MinMax.w ) Jmax = dp.jMax = std::min( dp.jMax+1, dp.nJ-1 );
 
 	float duration;
 	for( int j = 0; j < NUM_TIMED_KERNELS; j++ ) {
