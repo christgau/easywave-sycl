@@ -86,7 +86,7 @@ int main( int argc, char **argv )
   Log.print( "%s", buf );
 
   if( Par.gpu ) {
-#ifdef SYCL_LANGUAGE_VERSION
+#ifdef EW_GPU_ENABLED
           gNode = new CGpuNode();
 #else
           throw std::runtime_error("Called GPU code in a non-GPU build. Consider rebuilding the code");
