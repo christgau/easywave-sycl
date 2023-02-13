@@ -3,4 +3,5 @@ SYCL_TARGETS=nvptx64-nvidia-cuda
 
 CXX=clang++
 CXXFLAGS=-O3 -march=native -mtune=native -ftree-vectorize -ffast-math -Rpass=loop-vectorize -fvectorize \
-	-fsycl -fsycl-unnamed-lambda -fsycl-targets=$(SYCL_TARGETS)
+	-fsycl -fsycl-unnamed-lambda -fsycl-targets=$(SYCL_TARGETS) \
+	$(if $(CUDA_ARCH),-Xsycl-target-backend --cuda-gpu-arch=$(CUDA_ARCH))

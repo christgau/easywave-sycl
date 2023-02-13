@@ -1,6 +1,6 @@
 CXX=nvcc
 NVCC=nvcc
-CXXFLAGS=-O3 -std=c++17 --extra-device-vectorization --use_fast_math -x cu
+CXXFLAGS=-O3 -std=c++17 --extra-device-vectorization --use_fast_math -x cu $(if $(CUDA_ARCH),-arch=$(CUDA_ARCH))
 
 SOURCES=\
 	EasyWave.cpp \
