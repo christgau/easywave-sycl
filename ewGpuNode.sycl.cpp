@@ -37,6 +37,10 @@
 
 #include <vector>
 
+#ifdef EW_KERNEL_DURATION_CHECK
+#include <limits>
+#endif
+
 /* memory helpers, inspired by dpct headers */
 #define PITCH_DEFAULT_ALIGN(x) (((x) + 31) & ~(0x1F))
 
@@ -399,8 +403,18 @@ int CGpuNode::run() {
 	if (MinMax.w()) Jmax = dp.jMax = std::min(dp.jMax + 1, dp.nJ - 1);
 
 	for( int j = 0; have_profiling && j < NUM_TIMED_KERNELS; j++ ) {
-		kernel_duration[j] += (kernel_events[j].get_profiling_info<cl::sycl::info::event_profiling::command_end>()
+		float duration = (kernel_events[j].get_profiling_info<cl::sycl::info::event_profiling::command_end>()
 			- kernel_events[j].get_profiling_info<cl::sycl::info::event_profiling::command_start>()) / 1.0E+6;
+#ifdef EW_KERNEL_DURATION_CHECK
+		// Intel/Codeplay's LLVM runtime for AMD appear to have problem with short lived kernels (?), so do
+		// a tiny check here if requested (limit is chosen arbitrary, but if absent, numbers become really large)
+		if (duration < std::numeric_limits<int>::max()) {
+			kernel_duration[j] += duration;
+		}
+#else
+		kernel_duration[j] += duration;
+#endif
+
 	}
 
 	/* data has changed now -> copy becomes necessary */
