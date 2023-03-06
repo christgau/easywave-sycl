@@ -1,9 +1,8 @@
-# for open source Intel LLVM with ROCm support using the MI100
+# for open source Intel LLVM with ROCm support using the MI100 (gfx908) or MI210 (gfx90a)
 SYCL_TARGETS=amdgcn-amd-amdhsa
-DEVICE_ARGS=-Xsycl-target-backend --offload-arch=gfx908
+#DEVICE_ARGS=-Xsycl-target-backend --offload-arch=gfx908
+DEVICE_ARGS=-Xsycl-target-backend --offload-arch=gfx90a
 
 CXX=clang++
 CXXFLAGS=-O3 -march=native -mtune=native -ftree-vectorize -ffast-math -Rpass=loop-vectorize -cl-fast-relaxed-math -fvectorize \
-	-fsycl -fsycl-unnamed-lambda -fsycl-targets=$(SYCL_TARGETS) $(DEVICE_ARGS) -DUSE_INLINE_KERNELS -DUSE_STD_MATH
-
-INLINE_KERNELS=1
+	-fsycl -fsycl-unnamed-lambda -fsycl-targets=$(SYCL_TARGETS) $(DEVICE_ARGS) -DUSE_STD_MATH -DEW_KERNEL_DURATION_CHECK
