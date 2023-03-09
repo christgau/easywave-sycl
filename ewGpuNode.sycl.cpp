@@ -325,6 +325,7 @@ int CGpuNode::run() {
 	cl::sycl::range<1> boundary_workgroup_size(max_wg_size);
 	cl::sycl::range<1> boundary_size(INT_CEIL(std::max(dp.nI, dp.nJ), boundary_workgroup_size[0]));
 
+#if 0
 #if defined(SYCL_LANGUAGE_VERSION) && defined (__INTEL_LLVM_COMPILER)
 	/* For Intel, prevent the nd_range_error: "Non-uniform work-groups are not supported by the target device -54 (CL_INVALID_WORK_GROUP_SIZE))". */
 	/* Originally we had n = 128 threads, 32 for x and 128/x = 4 threads, hardcoded in the CUDA code. */
@@ -332,6 +333,10 @@ int CGpuNode::run() {
 #else
 	cl::sycl::range<2> compute_wnd_workgroup_size(32, 32);
 #endif
+#else
+	cl::sycl::range<2> compute_wnd_workgroup_size(Par.threads_x, Par.threads_y);
+#endif
+
 	cl::sycl::range<2> compute_wnd_size(
 		INT_CEIL(NI, compute_wnd_workgroup_size[0]),
 		INT_CEIL(NJ, compute_wnd_workgroup_size[1])

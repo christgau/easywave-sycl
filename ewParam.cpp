@@ -193,6 +193,19 @@ int ewParam( int argc, char **argv )
   else
 	Par.verbose = false;
 
+#ifdef EW_GPU_ENABLED
+  // GPU Execution environment
+  if( ( argn = utlCheckCommandLineOption( argc, argv, "threads_x", 9 ) ) != 0 ) {
+    Par.threads_x = std::stol(argv[argn+1]);
+  } else Par.threads_x = 8;
+
+  if( ( argn = utlCheckCommandLineOption( argc, argv, "threads_y", 9 ) ) != 0 ) {
+    Par.threads_y = std::stol(argv[argn+1]);
+  } else Par.threads_y = 32;
+
+  Par.threads_total = Par.threads_x * Par.threads_y;
+#endif
+
   return 0;
 }
 
@@ -215,6 +228,10 @@ void ewLogParams(void)
   Log.print("ssh_clip: %g m", Par.sshClipThreshold);
   Log.print("ssh_zero: %g m", Par.sshZeroThreshold);
   Log.print("ssh_transparency: %g m\n", Par.sshTransparencyThreshold);
+#ifdef EW_GPU_ENABLED
+  Log.print("threads_x: %zu\n", Par.threads_x);
+  Log.print("threads_y: %zu\n", Par.threads_y);
+#endif
 
   return;
 }

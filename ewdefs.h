@@ -1,6 +1,10 @@
 #ifndef EWDEFS_H
 #define EWDEFS_H
 
+#ifdef EW_GPU_ENABLED
+#include <cstddef>
+#endif
+
 #define MAX_VARS_PER_NODE 12
 
 #define iD    0
@@ -45,6 +49,11 @@ struct EWPARAMS {
   bool gpu;
   bool adjustZtop;
   bool verbose;
+
+#ifdef EW_GPU_ENABLED
+  /* execution environment parameters (for GPUs) */
+  std::size_t threads_x, threads_y, threads_total;
+#endif
 };
 
 int ewStep();

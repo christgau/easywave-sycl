@@ -232,9 +232,9 @@ int CGpuNode::run() {
 		events_initialized = true;
 	}
 
-	int nThreads = 256;
-	int xThreads = 32;
-	int yThreads = nThreads / xThreads;
+	int nThreads = Par.threads_total;
+	int xThreads = Par.threads_x;
+	int yThreads = Par.threads_y;
 
 	int NJ = dp.jMax - dp.jMin + 1;
 	int NI = dp.iMax - dp.iMin + 1;
