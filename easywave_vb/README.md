@@ -33,43 +33,16 @@ To compile the SYCL code on AMD GPUs, please use the following:
 
 `-DUSE_AMDHIP_BACKEND=gfx90a` for MI250 or `-DUSE_AMDHIP_BACKEND=gfx908` for MI100
 
-## CUDA:
-
-Use the source files from ```easywave/CUDA/src```
-
-```
-mkdir build
-cd build
-CC=/path/to/clang/bin/clang CXX=/path/to/clang/bin/clang++ cmake ..
-```
-
-For A100 GPU, please use `-DUSE_SM=80` compilation 
-For H100 GPU, please use `-DUSE_SM=90` compilation 
-
-Build options through cmake:
-
-* ```-DENABLE_KERNEL_PROFILING``` Enables kernel profiling for CUDA and DPC++
-
-## ROCM:
-
-Use the source files from ```easywave/HIP/src```
-
-```
-mkdir build
-cd build
-CXX=/path/to/rocm/bin/hipcc cmake ..
-```
-
 # Run instructions
 
 To run the workload, it is suggested to use the following inputs (as per developer's suggestion)
 
 ```
-./easywave_{sycl|cuda} -grid /path/to//easywave_data/data/grid/e2Asean.grid -source /path/to/easywave_data/data/faults/BengkuluSept2007.flt -time 120
+./easywave_sycl -grid /path/to//easywave_data/data/grid/e2Asean.grid -source /path/to/easywave_data/data/faults/BengkuluSept2007.flt -time 120
 ```
 # SYCL specific environment variables
 
-PVC-1T: Please export the following variables `DirectSubmissionOverrideBlitterSupport=2`, `SYCL_PI_LEVEL_ZERO_DEVICE_SCOPE_EVENTS=1`, `SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS=1` for increased performance
+PVC-1T: Please export the following variables: `ZE_AFFINITY_MASK=0.0` to force 1-tile execution
 
 PVC-2T: Use `EnableImplicitScaling=1`
 
