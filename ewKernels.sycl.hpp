@@ -29,7 +29,7 @@
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
  */
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 #ifndef EW_KERNELS_H
 #define EW_KERNELS_H

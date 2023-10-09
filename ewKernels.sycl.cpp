@@ -30,7 +30,7 @@
  * limitations under the Licence.
  */
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include "ewGpuNode.hpp"
 #include "ewKernels.sycl.hpp"
 
