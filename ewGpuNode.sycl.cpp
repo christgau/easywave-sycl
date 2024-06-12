@@ -110,7 +110,7 @@ CGpuNode::CGpuNode() {
 	const auto &dev = default_queue->get_device();
 
 	std::cout << "Selected device: " << dev.get_info<cl::sycl::info::device::name>() << std::endl;
-	std::cout << "Profiling supported: " << dev.get_info<cl::sycl::info::device::queue_profiling>() << std::endl;
+	std::cout << "Profiling supported: " << dev.has(cl::sycl::aspect::queue_profiling);
 	std::cout << "Maximum Work group size: " << dev.get_info<cl::sycl::info::device::max_work_group_size>() << std::endl;
 	std::cout << "USM explicit allocations supported: " << dev.has(cl::sycl::aspect::usm_device_allocations) << std::endl;
 
@@ -118,13 +118,13 @@ CGpuNode::CGpuNode() {
 		throw std::runtime_error("Device does not support USM explicit allications.");
 	}
 
-	auto kernels = dev.get_info<cl::sycl::info::device::built_in_kernels>();
+	auto kernels = dev.get_info<cl::sycl::info::device::built_in_kernel_ids>();
 	std::cout << "Built-in kernels: " << (kernels.size() ? std::to_string(kernels.size()) : "None.") << std::endl;
 	for (const auto &k: kernels) {
-		std::cout << " - " << k << std::endl;
+		std::cout << " - " << k.get_name() << std::endl;
 	}
 
-	have_profiling = dev.get_info<cl::sycl::info::device::queue_profiling>() && Par.verbose;
+	have_profiling = dev.has(cl::sycl::aspect::queue_profiling) && Par.verbose;
 
 	if (have_profiling) {
 #ifndef __HIPSYCL__
